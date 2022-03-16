@@ -20,7 +20,7 @@ const config = {
     hardhat: {},
     mumbai: {
       url: 'https://matic-mumbai.chainstacklabs.com',
-      accounts: [process.env.pk],
+      accounts: [process.env.PRIVATE_KEY],
     },
   },
 };
