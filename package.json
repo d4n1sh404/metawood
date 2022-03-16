@@ -1,0 +1,36 @@
+{
+  "name": "metawood-marketplace",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+      "@openzeppelin/contracts": "^4.5.0"
+  },
+  "scripts": {
+    
+  },
+  "eslintConfig": {
+    "extends": [
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.5",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@openzeppelin/contracts": "^4.5.0",
+    "chai": "^4.3.6",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.6.0",
+    "hardhat": "^2.9.1"
+  }
+}
