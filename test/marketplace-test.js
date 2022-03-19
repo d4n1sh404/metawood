@@ -46,4 +46,9 @@ describe('Marketplace Contract', function () {
     expect(BigNumber.from(tx[2])).to.be.equal(1); //tokenId
     expect(BigNumber.from(tx[3])).to.be.equal(100); //lisingPrice
   });
+
+  it('Should get latest listings!', async function () {
+    let tx = await marketPlace.getLatestListings(3);
+    expect(tx.length).to.be.equal(3);
+  });
 });
