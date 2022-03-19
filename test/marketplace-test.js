@@ -18,7 +18,6 @@ describe('Metawood Marketplace', () => {
 
     await nftContract.deployed();
 
-
     const TokenContract = await ethers.getContractFactory('MetawoodToken');
     nativeToken = await TokenContract.deploy();
 
@@ -29,21 +28,23 @@ describe('Metawood Marketplace', () => {
 
     await nativeToken.deployed();
     await marketPlace.deployed();
-
   });
 
   it('Faucet should be active!', async function () {
     let tx = await nativeToken.requestToken(
       user.address,
-      BigNumber.from('1000')
+      BigNumber.from('100000000')
     );
     let tx2 = await nativeToken.balanceOf(user.address);
-    expect(BigNumber.from(tx2)).to.be.equal(BigNumber.from('1000'));
+    expect(BigNumber.from(tx2)).to.be.equal(BigNumber.from('100000000'));
   });
-
 
   it('Should register native Token!', async function () {
     let tx = await marketPlace.addSupportedToken('native', nativeToken.address);
+  });
+
+  it('Should register marketplace on nftToken!', async function () {
+    let tx = await nftContract.setMarketPlace(marketPlace.address);
   });
 
   it('Should mint a new token!', async function () {
@@ -85,6 +86,7 @@ describe('Metawood Marketplace', () => {
   it('Listing should be bought!', async function () {
     // console.log(await marketPlace.isApprovedForAll(deployer.address,marketPlace.address));
     let tx = await marketPlace.connect(user).buyNft(1);
-    console.log(tx);
+    let tx2 = await nftContract.balanceOf(user.address, 1);
+    expect(BigNumber.from(tx2)).to.be.equal(1);
   });
 });
