@@ -47,7 +47,6 @@ describe('Marketplace Contract', function () {
     let tx = await marketPlace.mint(
       deployer.address,
       1,
-      1,
       'http://testing',
       '0x00'
     );
@@ -64,7 +63,6 @@ describe('Marketplace Contract', function () {
 
   it('Listing should have been created!', async function () {
     let tx = await marketPlace.getListing(1);
-    console.log();
     expect(BigNumber.from(tx[0])).to.be.equal(1); //listingId
     expect(tx[1]).to.be.equal(deployer.address); //creatorAddress
     expect(BigNumber.from(tx[2])).to.be.equal(1); //tokenId
@@ -74,6 +72,11 @@ describe('Marketplace Contract', function () {
   it('Should get latest listings!', async function () {
     let tx = await marketPlace.getLatestListings(3);
     expect(tx.length).to.be.equal(3);
+  });
+
+  it('Should list owned tokens!', async function () {
+    let tx = await marketPlace.getOwnedTokens();
+    expect(BigNumber.from(tx[0])).to.be.equal(1); //tokenId
   });
 
   it('Listing should be bought!', async function () {

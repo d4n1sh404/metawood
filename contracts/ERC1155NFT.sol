@@ -5,9 +5,14 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract ERC1155NFT is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
+    using Counters for Counters.Counter;
+
     constructor() ERC1155("") {}
+
+    Counters.Counter private _tokenCount;
 
     mapping(uint256 => string) _uris;
 
@@ -28,13 +33,18 @@ contract ERC1155NFT is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
 
     function mint(
         address account,
-        uint256 id,
         uint256 amount,
         string memory tokenUrl,
         bytes memory data
     ) public onlyOwner {
-        _mint(account, id, amount, data);
-        setTokenURI(id, tokenUrl);
+        _tokenCount.increment();
+
+        _mint(account, _tokenCount.current(), amount, data);
+        setTokenURI(_tokenCount.current(), tokenUrl);
+    }
+
+    function getTokenCount() public view returns (uint256) {
+        return _tokenCount.current();
     }
 
     function mintBatch(
