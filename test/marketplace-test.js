@@ -2,11 +2,34 @@ const {expect} = require('chai');
 const {ethers} = require('hardhat');
 const {BigNumber} = require('ethers');
 
-describe('Marketplace Contract', function () {
-  let marketPlace;
-  let deployer;
-  let user;
+let marketPlace;
+let nativeToken;
+let deployer;
+let user;
 
+
+describe('Metawood Token Contract', () => {
+  before(async () => {
+
+
+    deployer = (await ethers.getSigners())[0];
+    user = (await ethers.getSigners())[1];
+
+    const TokenContract = await ethers.getContractFactory('MetawoodToken');
+    nativeToken = await TokenContract.deploy();
+
+    await nativeToken.deployed();
+  });
+
+  it('Faucet should be active!', async function () {
+    let tx = await nativeToken.requestToken(user.address,BigNumber.from("1000"));
+    let tx2 = await nativeToken.balanceOf(user.address);
+    expect(BigNumber.from(tx2)).to.be.equal(BigNumber.from("1000"));
+  });
+
+});
+
+describe('Marketplace Contract', function () {
   before(async () => {
     const MarketPlaceContract = await ethers.getContractFactory(
       'MetawoodMarketPlace'
@@ -14,9 +37,10 @@ describe('Marketplace Contract', function () {
     marketPlace = await MarketPlaceContract.deploy();
 
     await marketPlace.deployed();
+  });
 
-    deployer = (await ethers.getSigners())[0];
-    user = (await ethers.getSigners())[1];
+  it('Should register native Token!', async function () {
+    let tx = await marketPlace.addSupportedToken('native', nativeToken.address);
   });
 
   it('Should mint a new token!', async function () {
@@ -50,5 +74,10 @@ describe('Marketplace Contract', function () {
   it('Should get latest listings!', async function () {
     let tx = await marketPlace.getLatestListings(3);
     expect(tx.length).to.be.equal(3);
+  });
+
+  it('Listing should be bought!', async function () {
+    let tx = await marketPlace.connect(user).buyNft(1);
+    console.log(tx)
   });
 });
