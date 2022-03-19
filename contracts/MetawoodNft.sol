@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract ERC1155NFT is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
+contract MetawoodNft is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
     using Counters for Counters.Counter;
 
     constructor() ERC1155("") {}

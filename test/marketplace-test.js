@@ -3,48 +3,51 @@ const {ethers} = require('hardhat');
 const {BigNumber} = require('ethers');
 
 let marketPlace;
+let nftContract;
 let nativeToken;
 let deployer;
 let user;
 
-
-describe('Metawood Token Contract', () => {
+describe('Metawood Marketplace', () => {
   before(async () => {
-
-
     deployer = (await ethers.getSigners())[0];
     user = (await ethers.getSigners())[1];
+
+    const NftContract = await ethers.getContractFactory('MetawoodNft');
+    nftContract = await NftContract.deploy();
+
+    await nftContract.deployed();
+
 
     const TokenContract = await ethers.getContractFactory('MetawoodToken');
     nativeToken = await TokenContract.deploy();
 
-    await nativeToken.deployed();
-  });
-
-  it('Faucet should be active!', async function () {
-    let tx = await nativeToken.requestToken(user.address,BigNumber.from("1000"));
-    let tx2 = await nativeToken.balanceOf(user.address);
-    expect(BigNumber.from(tx2)).to.be.equal(BigNumber.from("1000"));
-  });
-
-});
-
-describe('Marketplace Contract', function () {
-  before(async () => {
     const MarketPlaceContract = await ethers.getContractFactory(
       'MetawoodMarketPlace'
     );
-    marketPlace = await MarketPlaceContract.deploy();
+    marketPlace = await MarketPlaceContract.deploy(nftContract.address);
 
+    await nativeToken.deployed();
     await marketPlace.deployed();
+
   });
+
+  it('Faucet should be active!', async function () {
+    let tx = await nativeToken.requestToken(
+      user.address,
+      BigNumber.from('1000')
+    );
+    let tx2 = await nativeToken.balanceOf(user.address);
+    expect(BigNumber.from(tx2)).to.be.equal(BigNumber.from('1000'));
+  });
+
 
   it('Should register native Token!', async function () {
     let tx = await marketPlace.addSupportedToken('native', nativeToken.address);
   });
 
   it('Should mint a new token!', async function () {
-    let tx = await marketPlace.mint(
+    let tx = await nftContract.mint(
       deployer.address,
       1,
       'http://testing',
@@ -53,7 +56,7 @@ describe('Marketplace Contract', function () {
   });
 
   it('User should have minted token!', async function () {
-    let tx = await marketPlace.balanceOf(deployer.address, 1);
+    let tx = await nftContract.balanceOf(deployer.address, 1);
     expect(BigNumber.from(tx)).to.be.equal(1);
   });
 
@@ -80,7 +83,8 @@ describe('Marketplace Contract', function () {
   });
 
   it('Listing should be bought!', async function () {
+    // console.log(await marketPlace.isApprovedForAll(deployer.address,marketPlace.address));
     let tx = await marketPlace.connect(user).buyNft(1);
-    console.log(tx)
+    console.log(tx);
   });
 });

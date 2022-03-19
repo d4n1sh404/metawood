@@ -5,10 +5,15 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./ERC1155NFT.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "./MetawoodNft.sol";
 
-contract MetawoodMarketPlace is Ownable, ERC1155NFT {
-    constructor() ERC1155NFT() {}
+contract MetawoodMarketPlace is Ownable {
+    MetawoodNft metawoodNft;
+
+    constructor(address metawoodNftAddress) {
+        metawoodNft = MetawoodNft(metawoodNftAddress);
+    }
 
     using Counters for Counters.Counter;
 
@@ -43,7 +48,10 @@ contract MetawoodMarketPlace is Ownable, ERC1155NFT {
     }
 
     function createListing(uint256 tokenId, uint256 tokenPrice) public {
-        require(balanceOf(msg.sender, tokenId) > 0, "Token Not Owned!");
+        require(
+            metawoodNft.balanceOf(msg.sender, tokenId) > 0,
+            "Token Not Owned!"
+        );
 
         _listingCount.increment();
         uint256 id = _listingCount.current();
@@ -57,7 +65,7 @@ contract MetawoodMarketPlace is Ownable, ERC1155NFT {
         );
 
         //get approval for transfer from msg.sender
-        setApprovalForAll(address(this), true);
+        // metawoodNft.setApprovalForAll(address(this), true);
 
         // TODO emit event
     }
@@ -90,16 +98,16 @@ contract MetawoodMarketPlace is Ownable, ERC1155NFT {
 
     function getOwnedTokens() public view returns (uint256[] memory) {
         uint256 count = 0;
-        uint256 tokenCount = getTokenCount();
+        uint256 tokenCount = metawoodNft.getTokenCount();
         for (uint256 i = 1; i <= tokenCount; i++) {
-            if (balanceOf(msg.sender, i) > 0) {
+            if (metawoodNft.balanceOf(msg.sender, i) > 0) {
                 count++;
             }
         }
         uint256[] memory tokenIds = new uint256[](count);
         uint256 counter = 0;
         for (uint256 i = 1; i <= tokenCount; i++) {
-            if (balanceOf(msg.sender, i) > 0) {
+            if (metawoodNft.balanceOf(msg.sender, i) > 0) {
                 tokenIds[counter] = i;
                 counter++;
             }
@@ -118,14 +126,17 @@ contract MetawoodMarketPlace is Ownable, ERC1155NFT {
             "Insufficient funds for purchase!!"
         );
 
-        safeTransferFrom(
+        metawoodNft.safeTransferFrom(
             _listings[listingId].creator,
             msg.sender,
             _listings[listingId].tokenId,
             1,
             "0x00"
         );
-
+        _supportedTokens["native"].transfer(
+            _listings[listingId].creator,
+            _listings[listingId].price
+        );
         _listings[listingId].status = ListingState.CLOSED;
         // TODO emit event
     }
