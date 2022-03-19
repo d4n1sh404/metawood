@@ -67,7 +67,6 @@ contract MetawoodMarketPlace is Ownable {
         //get approval for transfer from msg.sender
         // metawoodNft.setApprovalForAll(address(this), true);
 
-
         // TODO emit event
     }
 
@@ -116,6 +115,31 @@ contract MetawoodMarketPlace is Ownable {
         return tokenIds;
     }
 
+    function getOpenListings() public view returns (Listing[] memory) {
+        uint256 count = 0;
+
+        for (uint256 i = 1; i <= _listingCount.current(); i++) {
+            if (
+                _listings[i].status == ListingState.OPEN &&
+                _listings[i].creator == msg.sender
+            ) {
+                count++;
+            }
+        }
+
+        Listing[] memory listings = new Listing[](count);
+        for (uint256 i = 1; i <= _listingCount.current(); i++) {
+            if (
+                _listings[i].status == ListingState.OPEN &&
+                _listings[i].creator == msg.sender
+            ) {
+                listings[count-1] = _listings[i];
+                count--;
+            }
+        }
+        return listings;
+    }
+
     function buyNft(uint256 listingId) public {
         require(
             _listings[listingId].status == ListingState.OPEN,
@@ -134,10 +158,12 @@ contract MetawoodMarketPlace is Ownable {
             1,
             "0x00"
         );
+
         _supportedTokens["native"].transfer(
             _listings[listingId].creator,
             _listings[listingId].price
         );
+
         _listings[listingId].status = ListingState.CLOSED;
         // TODO emit event
     }

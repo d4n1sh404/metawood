@@ -35,6 +35,7 @@ describe('Metawood Marketplace', () => {
       user.address,
       BigNumber.from('100000000')
     );
+
     let tx2 = await nativeToken.balanceOf(user.address);
     expect(BigNumber.from(tx2)).to.be.equal(BigNumber.from('100000000'));
   });
@@ -78,6 +79,7 @@ describe('Metawood Marketplace', () => {
     expect(tx.length).to.be.equal(3);
   });
 
+
   it('Should list owned tokens!', async function () {
     let tx = await marketPlace.getOwnedTokens();
     expect(BigNumber.from(tx[0])).to.be.equal(1); //tokenId
@@ -89,4 +91,5 @@ describe('Metawood Marketplace', () => {
     let tx2 = await nftContract.balanceOf(user.address, 1);
     expect(BigNumber.from(tx2)).to.be.equal(1);
   });
+
 });
