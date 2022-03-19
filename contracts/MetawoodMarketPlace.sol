@@ -62,6 +62,14 @@ contract MetawoodMarketPlace is Ownable, ERC1155NFT {
         // TODO emit event
     }
 
+    function getListing(uint256 listingId)
+        public
+        view
+        returns (Listing memory listing)
+    {
+        return _listings[listingId];
+    }
+
     function buyNFT(uint256 listingId) public {
         require(
             _listings[listingId].status == ListingState.OPEN,
