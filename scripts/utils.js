@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const {artifacts, network} = require('hardhat');
+const fs = require("fs");
+const path = require("path");
+const { artifacts, network } = require("hardhat");
 
-const contractsDir = path.join(__dirname, '/../src/abis');
+const contractsDir = path.join(__dirname, "/../src/abis");
 
 const saveAbi = (name, contract) => {
   if (!fs.existsSync(contractsDir)) {
