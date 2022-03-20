@@ -151,6 +151,8 @@ contract MetawoodMarketPlace is Ownable {
             "Insufficient funds for purchase!!"
         );
 
+        
+
         metawoodNft.safeTransferFrom(
             _listings[listingId].creator,
             msg.sender,
@@ -159,7 +161,8 @@ contract MetawoodMarketPlace is Ownable {
             "0x00"
         );
 
-        _supportedTokens["native"].transfer(
+        _supportedTokens["native"].transferFrom(
+            msg.sender,
             _listings[listingId].creator,
             _listings[listingId].price
         );
