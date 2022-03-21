@@ -10,13 +10,13 @@ import "./MetawoodMarketPlace.sol";
 
 contract MetawoodNft is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
     using Counters for Counters.Counter;
-    MetawoodMarketPlace marketPlace;
+    MetawoodMarketPlace private _marketPlace;
+    Counters.Counter private _tokenCount;
 
     constructor() ERC1155("") {}
 
-    Counters.Counter private _tokenCount;
 
-    mapping(uint256 => string) _uris;
+    mapping(uint256 => string) private _uris;
 
     function uri(uint256 tokenId) public view override returns (string memory) {
         return _uris[tokenId];
@@ -43,7 +43,7 @@ contract MetawoodNft is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
 
         _mint(account, _tokenCount.current(), amount, data);
         setTokenURI(_tokenCount.current(), tokenUrl);
-        setApprovalForAll(address(marketPlace), true);
+        setApprovalForAll(address(_marketPlace), true);
     }
 
     function getTokenCount() public view returns (uint256) {
@@ -60,7 +60,7 @@ contract MetawoodNft is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
     }
 
     function setMarketPlace(address marketPlaceAddress) public onlyOwner {
-        marketPlace = MetawoodMarketPlace(marketPlaceAddress);
+        _marketPlace = MetawoodMarketPlace(marketPlaceAddress);
     }
 
     // The following functions are overrides required by Solidity.
