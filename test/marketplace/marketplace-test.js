@@ -83,4 +83,13 @@ describe("Metawood Marketplace", () => {
     let tx2 = await nftContract.balanceOf(user.address, 1);
     expect(BigNumber.from(tx2)).to.be.equal(1);
   });
+
+  it("Should register a new User!", async function () {
+    let tx = await marketPlace.addUser(user.address, "datauri");
+  });
+
+  it("Should get the registered User!", async function () {
+    let tx = await marketPlace.getUser(user.address);
+    expect(tx.data == "datauri");
+  });
 });

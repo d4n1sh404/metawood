@@ -174,4 +174,8 @@ contract MetawoodMarketPlace is Ownable {
     function addUser(address userAddress, string memory data) public {
         _users[userAddress] = User(userAddress, data);
     }
+
+    function getUser(address userAddress ) public view returns(User memory){
+        return _users[userAddress];
+    }
 }
