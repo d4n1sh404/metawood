@@ -59,6 +59,12 @@ contract MetawoodMarketPlace is Ownable {
         // TODO emit event
     }
 
+    function closeListing(uint256 listingId) public {
+        require(_listings[listingId].creator == msg.sender, "Not the creator of the listing!");
+        require(_listings[listingId].status == ListingState.OPEN, "Listing is already closed!!");
+        _listings[listingId].status = ListingState.CLOSED;
+    }
+
     function getListing(uint256 listingId) public view returns (Listing memory listing) {
         return _listings[listingId];
     }

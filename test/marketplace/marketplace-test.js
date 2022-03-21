@@ -47,6 +47,11 @@ describe("Metawood Marketplace", () => {
     let tx = await nftContract.mint(deployer.address, 1, "http://testing", "0x00");
   });
 
+  it("Minted token should have custom uri", async function () {
+    let tx = await nftContract.uri(1);
+    expect(tx).to.equal("http://testing");
+  });
+
   it("User should have minted token!", async function () {
     let tx = await nftContract.balanceOf(deployer.address, 1);
     expect(BigNumber.from(tx)).to.be.equal(1);
@@ -69,7 +74,7 @@ describe("Metawood Marketplace", () => {
     expect(tx.length).to.be.equal(3);
   });
 
-  it("User Should his open listings!", async function () {
+  it("User Should get his open listings!", async function () {
     let tx = await marketPlace.getOpenListings();
     expect(tx.length).to.be.equal(1);
   });
@@ -96,6 +101,10 @@ describe("Metawood Marketplace", () => {
 
   it("Buyer should be able to list bought token!", async function () {
     let tx = await marketPlace.connect(user).createListing(1, 200);
+  });
+
+  it("User should be able to close  his listing!", async function () {
+    let tx = await marketPlace.connect(user).closeListing(2);
   });
 
   it("Should register a new User!", async function () {
