@@ -41,28 +41,17 @@ contract MetawoodMarketPlace is Ownable {
     mapping(string => IERC20) private _supportedTokens;
     mapping(address => User) private _users;
 
-    function addSupportedToken(string memory tokenName, address tokenContract)
-        public
-    {
+    function addSupportedToken(string memory tokenName, address tokenContract) public {
         _supportedTokens[tokenName] = IERC20(tokenContract);
     }
 
     function createListing(uint256 tokenId, uint256 tokenPrice) public {
-        require(
-            _metawoodNft.balanceOf(msg.sender, tokenId) > 0,
-            "Token Not Owned!"
-        );
+        require(_metawoodNft.balanceOf(msg.sender, tokenId) > 0, "Token Not Owned!");
 
         _listingCount.increment();
         uint256 id = _listingCount.current();
 
-        _listings[id] = Listing(
-            id,
-            msg.sender,
-            tokenId,
-            tokenPrice,
-            ListingState.OPEN
-        );
+        _listings[id] = Listing(id, msg.sender, tokenId, tokenPrice, ListingState.OPEN);
 
         //get approval for transfer from msg.sender
         // metawoodNft.setApprovalForAll(address(this), true);
@@ -70,19 +59,11 @@ contract MetawoodMarketPlace is Ownable {
         // TODO emit event
     }
 
-    function getListing(uint256 listingId)
-        public
-        view
-        returns (Listing memory listing)
-    {
+    function getListing(uint256 listingId) public view returns (Listing memory listing) {
         return _listings[listingId];
     }
 
-    function getLatestListings(uint256 threshold)
-        public
-        view
-        returns (Listing[] memory)
-    {
+    function getLatestListings(uint256 threshold) public view returns (Listing[] memory) {
         Listing[] memory listings = new Listing[](threshold);
         uint256 count = _listingCount.current();
         uint256 found = 0;
@@ -115,25 +96,40 @@ contract MetawoodMarketPlace is Ownable {
         return tokenIds;
     }
 
+    //users only listings
     function getOpenListings() public view returns (Listing[] memory) {
         uint256 count = 0;
 
         for (uint256 i = 1; i <= _listingCount.current(); i++) {
-            if (
-                _listings[i].status == ListingState.OPEN &&
-                _listings[i].creator == msg.sender
-            ) {
+            if (_listings[i].status == ListingState.OPEN && _listings[i].creator == msg.sender) {
                 count++;
             }
         }
 
         Listing[] memory listings = new Listing[](count);
         for (uint256 i = 1; i <= _listingCount.current(); i++) {
-            if (
-                _listings[i].status == ListingState.OPEN &&
-                _listings[i].creator == msg.sender
-            ) {
-                listings[count-1] = _listings[i];
+            if (_listings[i].status == ListingState.OPEN && _listings[i].creator == msg.sender) {
+                listings[count - 1] = _listings[i];
+                count--;
+            }
+        }
+        return listings;
+    }
+
+    //all open listings
+    function getAllOpenListings() public view returns (Listing[] memory) {
+        uint256 count = 0;
+
+        for (uint256 i = 1; i <= _listingCount.current(); i++) {
+            if (_listings[i].status == ListingState.OPEN) {
+                count++;
+            }
+        }
+
+        Listing[] memory listings = new Listing[](count);
+        for (uint256 i = 1; i <= _listingCount.current(); i++) {
+            if (_listings[i].status == ListingState.OPEN) {
+                listings[count - 1] = _listings[i];
                 count--;
             }
         }
@@ -141,17 +137,11 @@ contract MetawoodMarketPlace is Ownable {
     }
 
     function buyNft(uint256 listingId) public {
+        require(_listings[listingId].status == ListingState.OPEN, "The item is not for sale!!");
         require(
-            _listings[listingId].status == ListingState.OPEN,
-            "The item is not for sale!!"
-        );
-        require(
-            _supportedTokens["native"].balanceOf(msg.sender) >=
-                _listings[listingId].price,
+            _supportedTokens["native"].balanceOf(msg.sender) >= _listings[listingId].price,
             "Insufficient funds!!"
         );
-
-
 
         _metawoodNft.safeTransferFrom(
             _listings[listingId].creator,
@@ -175,7 +165,7 @@ contract MetawoodMarketPlace is Ownable {
         _users[userAddress] = User(userAddress, data);
     }
 
-    function getUser(address userAddress ) public view returns(User memory){
+    function getUser(address userAddress) public view returns (User memory) {
         return _users[userAddress];
     }
 }
