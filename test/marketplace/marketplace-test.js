@@ -69,6 +69,16 @@ describe("Metawood Marketplace", () => {
     expect(tx.length).to.be.equal(3);
   });
 
+  it("User Should his open listings!", async function () {
+    let tx = await marketPlace.getOpenListings();
+    expect(tx.length).to.be.equal(1);
+  });
+
+  it("Should get all open listings!", async function () {
+    let tx = await marketPlace.getAllOpenListings();
+    expect(tx.length).to.be.equal(1);
+  });
+
   it("Should list owned tokens!", async function () {
     let tx = await marketPlace.getOwnedTokens();
     expect(BigNumber.from(tx[0])).to.be.equal(1); //tokenId
@@ -82,6 +92,10 @@ describe("Metawood Marketplace", () => {
     let tx = await marketPlace.connect(user).buyNft(1);
     let tx2 = await nftContract.balanceOf(user.address, 1);
     expect(BigNumber.from(tx2)).to.be.equal(1);
+  });
+
+  it("Buyer should be able to list bought token!", async function () {
+    let tx = await marketPlace.connect(user).createListing(1, 200);
   });
 
   it("Should register a new User!", async function () {
