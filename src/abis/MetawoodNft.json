@@ -1,7 +1,7 @@
 {
   "name": "MetawoodNft",
-  "network": "localhost",
-  "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "network": "mumbai",
+  "address": "0xEf65C2708f18485820376a8Fd1b73490C0D1B0D9",
   "abi": [
     {
       "inputs": [],

@@ -1,7 +1,7 @@
 {
   "name": "MetawoodMarketPlace",
-  "network": "localhost",
-  "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+  "network": "mumbai",
+  "address": "0x5e7451C6616Dc4ff05d8216AEFAad64f5E1A69f4",
   "abi": [
     {
       "inputs": [
