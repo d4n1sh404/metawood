@@ -29,9 +29,11 @@ describe("Metawood Marketplace", () => {
   });
 
   it("Faucet should be active!", async function () {
-    let tx = await nativeToken.requestToken(user.address, BigNumber.from("100000000"));
+    let tx = await nativeToken
+      .connect(user)
+      .requestToken(user.address, BigNumber.from("100000000"));
 
-    let tx2 = await nativeToken.balanceOf(user.address);
+    let tx2 = await nativeToken.connect(deployer).balanceOf(user.address);
     expect(BigNumber.from(tx2)).to.be.equal(BigNumber.from("100000000"));
   });
 
