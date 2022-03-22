@@ -17,6 +17,10 @@ const main = async () => {
   console.log("Nft deployed to:", nftContract.address);
   console.log("Marketplace deployed to:", marketPlace.address);
 
+  await marketPlace.addSupportedToken("native", nativeToken.address);
+  await nftContract.setMarketPlace(marketPlace.address);
+
+
   saveAbi("MetawoodNft", nftContract);
   saveAbi("MetawoodToken", nativeToken);
   saveAbi("MetawoodMarketPlace", marketPlace);
