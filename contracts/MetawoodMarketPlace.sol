@@ -6,9 +6,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./MetawoodNft.sol";
 
-contract MetawoodMarketPlace is Ownable {
+contract MetawoodMarketPlace is Ownable, ReentrancyGuard {
     MetawoodNft private _metawoodNft;
 
     constructor(address metawoodNftAddress) {
@@ -41,11 +42,11 @@ contract MetawoodMarketPlace is Ownable {
     mapping(string => IERC20) private _supportedTokens;
     mapping(address => User) private _users;
 
-    function addSupportedToken(string memory tokenName, address tokenContract) public {
+    function addSupportedToken(string memory tokenName, address tokenContract) public onlyOwner {
         _supportedTokens[tokenName] = IERC20(tokenContract);
     }
 
-    function createListing(uint256 tokenId, uint256 tokenPrice) public {
+    function createListing(uint256 tokenId, uint256 tokenPrice) public nonReentrant {
         require(_metawoodNft.balanceOf(msg.sender, tokenId) > 0, "Token Not Owned!");
 
         _listingCount.increment();
@@ -59,7 +60,7 @@ contract MetawoodMarketPlace is Ownable {
         // TODO emit event
     }
 
-    function closeListing(uint256 listingId) public {
+    function closeListing(uint256 listingId) public nonReentrant {
         require(_listings[listingId].creator == msg.sender, "Not the creator of the listing!");
         require(_listings[listingId].status == ListingState.OPEN, "Listing is already closed!!");
         _listings[listingId].status = ListingState.CLOSED;
@@ -142,7 +143,7 @@ contract MetawoodMarketPlace is Ownable {
         return listings;
     }
 
-    function buyNft(uint256 listingId) public {
+    function buyNft(uint256 listingId) public nonReentrant {
         require(_listings[listingId].status == ListingState.OPEN, "The item is not for sale!!");
         require(
             _supportedTokens["native"].balanceOf(msg.sender) >= _listings[listingId].price,
