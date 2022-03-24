@@ -12,6 +12,10 @@ import "./MetawoodNft.sol";
 contract MetawoodMarketPlace is Ownable, ReentrancyGuard {
     MetawoodNft private _metawoodNft;
 
+    event ListingCreated(address indexed creator, uint256 tokenId, uint256 tokenPrice);
+    event ListingClosed(address indexed creator, uint256 listingId);
+    event NFTBuy(uint256 tokenId, uint256 tokenPrice, uint256 listingId, address indexed buyer);
+
     constructor(address metawoodNftAddress) {
         _metawoodNft = MetawoodNft(metawoodNftAddress);
     }
@@ -58,12 +62,14 @@ contract MetawoodMarketPlace is Ownable, ReentrancyGuard {
         // metawoodNft.setApprovalForAll(address(this), true);
 
         // TODO emit event
+        emit ListingCreated(msg.sender, tokenId, tokenPrice);
     }
 
     function closeListing(uint256 listingId) public nonReentrant {
         require(_listings[listingId].creator == msg.sender, "Not the creator of the listing!");
         require(_listings[listingId].status == ListingState.OPEN, "Listing is already closed!!");
         _listings[listingId].status = ListingState.CLOSED;
+        emit ListingClosed(msg.sender, listingId);
     }
 
     function getListing(uint256 listingId) public view returns (Listing memory listing) {
@@ -165,14 +171,22 @@ contract MetawoodMarketPlace is Ownable, ReentrancyGuard {
         );
 
         _listings[listingId].status = ListingState.CLOSED;
-        // TODO emit event
+
+        emit NFTBuy(
+            _listings[listingId].tokenId,
+            _listings[listingId].price,
+            listingId,
+            msg.sender
+        );
     }
 
     function addUser(address userAddress, string memory data) public {
         _users[userAddress] = User(userAddress, data);
     }
-
+    
     function getUser(address userAddress) public view returns (User memory) {
         return _users[userAddress];
     }
+
+
 }
