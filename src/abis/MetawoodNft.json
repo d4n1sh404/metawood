@@ -1,7 +1,7 @@
 {
   "name": "MetawoodNft",
   "network": "mumbai",
-  "address": "0xEf65C2708f18485820376a8Fd1b73490C0D1B0D9",
+  "address": "0xc9c6b0c56886dF04Ba6F0542EbC3148032A6E1dC",
   "abi": [
     {
       "inputs": [],
@@ -297,11 +297,6 @@
     },
     {
       "inputs": [
-        {
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        },
         {
           "internalType": "uint256",
           "name": "amount",

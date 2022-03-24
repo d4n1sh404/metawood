@@ -1,7 +1,7 @@
 {
   "name": "MetawoodToken",
   "network": "mumbai",
-  "address": "0x31a08158FF5874173CC3481bC2cE2b81Ae9E5c4f",
+  "address": "0x8BCA928670091aa75DbA0BCD3F6C4c36114C9a91",
   "abi": [
     {
       "inputs": [],
@@ -31,6 +31,25 @@
         }
       ],
       "name": "Approval",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
       "type": "event"
     },
     {
@@ -213,6 +232,26 @@
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "address",
@@ -306,6 +345,19 @@
           "type": "bool"
         }
       ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     }
