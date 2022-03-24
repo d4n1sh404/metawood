@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract MetawoodToken is ERC20, Ownable {
-    uint256 public constant MAX_SUPPLY = 1000000 * 10**18;
+    uint256 public constant MAX_SUPPLY = 200000000 * 10**18;
     IERC20 private _self;
 
     constructor() ERC20("Metawood Token", "MTWD") {
