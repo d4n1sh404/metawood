@@ -7,11 +7,13 @@ let nftContract;
 let nativeToken;
 let deployer;
 let user;
+let userTwo;
 
 describe("Metawood Marketplace", () => {
   before(async () => {
     deployer = (await ethers.getSigners())[0];
     user = (await ethers.getSigners())[1];
+    userTwo = (await ethers.getSigners())[2];
 
     const NftContract = await ethers.getContractFactory("MetawoodNft");
     nftContract = await NftContract.deploy();
@@ -33,6 +35,10 @@ describe("Metawood Marketplace", () => {
       .connect(user)
       .requestToken(user.address, BigNumber.from("100000000"));
 
+    let u2Tx = await nativeToken
+      .connect(userTwo)
+      .requestToken(userTwo.address, BigNumber.from("100000000"));
+
     let tx2 = await nativeToken.connect(deployer).balanceOf(user.address);
     expect(BigNumber.from(tx2)).to.be.equal(BigNumber.from("100000000"));
   });
@@ -46,7 +52,7 @@ describe("Metawood Marketplace", () => {
   });
 
   it("Should mint a new token!", async function () {
-    let tx = await nftContract.mint(deployer.address, 1, "http://testing", "0x00");
+    let tx = await nftContract.connect(user).mint(1, "http://testing", "0x00");
   });
 
   it("Minted token should have custom uri", async function () {
@@ -55,18 +61,18 @@ describe("Metawood Marketplace", () => {
   });
 
   it("User should have minted token!", async function () {
-    let tx = await nftContract.balanceOf(deployer.address, 1);
+    let tx = await nftContract.balanceOf(user.address, 1);
     expect(BigNumber.from(tx)).to.be.equal(1);
   });
 
   it("User should be able to list minted token!", async function () {
-    let tx = await marketPlace.createListing(1, 100);
+    let tx = await marketPlace.connect(user).createListing(1, 100);
   });
 
   it("Listing should have been created!", async function () {
     let tx = await marketPlace.getListing(1);
     expect(BigNumber.from(tx[0])).to.be.equal(1); //listingId
-    expect(tx[1]).to.be.equal(deployer.address); //creatorAddress
+    expect(tx[1]).to.be.equal(user.address); //creatorAddress
     expect(BigNumber.from(tx[2])).to.be.equal(1); //tokenId
     expect(BigNumber.from(tx[3])).to.be.equal(100); //lisingPrice
   });
@@ -77,7 +83,7 @@ describe("Metawood Marketplace", () => {
   });
 
   it("User Should get his open listings!", async function () {
-    let tx = await marketPlace.getOpenListings();
+    let tx = await marketPlace.connect(user).getOpenListings();
     expect(tx.length).to.be.equal(1);
   });
 
@@ -87,26 +93,27 @@ describe("Metawood Marketplace", () => {
   });
 
   it("Should list owned tokens!", async function () {
-    let tx = await marketPlace.getOwnedTokens();
+    let tx = await marketPlace.connect(user).getOwnedTokens();
     expect(BigNumber.from(tx[0])).to.be.equal(1); //tokenId
   });
 
   it("Listing should be bought!", async function () {
     // console.log(await marketPlace.isApprovedForAll(deployer.address,marketPlace.address));
     let approve = await nativeToken
-      .connect(user)
+      .connect(userTwo)
       .approve(marketPlace.address, ethers.constants.MaxUint256);
-    let tx = await marketPlace.connect(user).buyNft(1);
-    let tx2 = await nftContract.balanceOf(user.address, 1);
+
+    let tx = await marketPlace.connect(userTwo).buyNft(1);
+    let tx2 = await nftContract.balanceOf(userTwo.address, 1);
     expect(BigNumber.from(tx2)).to.be.equal(1);
   });
 
   it("Buyer should be able to list bought token!", async function () {
-    let tx = await marketPlace.connect(user).createListing(1, 200);
+    let tx = await marketPlace.connect(userTwo).createListing(1, 200);
   });
 
   it("User should be able to close  his listing!", async function () {
-    let tx = await marketPlace.connect(user).closeListing(2);
+    let tx = await marketPlace.connect(userTwo).closeListing(2);
   });
 
   it("Should register a new User!", async function () {
