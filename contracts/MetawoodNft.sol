@@ -56,7 +56,7 @@ contract MetawoodNft is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
         uint256[] memory ids,
         uint256[] memory amounts,
         bytes memory data
-    ) public {
+    ) public onlyOwner {
         _mintBatch(to, ids, amounts, data);
     }
 
