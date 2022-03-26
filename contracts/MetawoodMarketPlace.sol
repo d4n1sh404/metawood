@@ -155,6 +155,7 @@ contract MetawoodMarketPlace is Ownable, ReentrancyGuard {
             _supportedTokens["native"].balanceOf(msg.sender) >= _listings[listingId].price,
             "Insufficient funds!!"
         );
+        require(_listings[listingId].creator != msg.sender, "Cannot Buy Owned Item!");
 
         _metawoodNft.safeTransferFrom(
             _listings[listingId].creator,
@@ -183,10 +184,8 @@ contract MetawoodMarketPlace is Ownable, ReentrancyGuard {
     function addUser(address userAddress, string memory data) public {
         _users[userAddress] = User(userAddress, data);
     }
-    
+
     function getUser(address userAddress) public view returns (User memory) {
         return _users[userAddress];
     }
-
-
 }
