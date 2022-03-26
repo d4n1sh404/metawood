@@ -83,7 +83,7 @@ describe("Metawood Marketplace", () => {
   });
 
   it("User Should get his open listings!", async function () {
-    let tx = await marketPlace.connect(user).getOpenListings();
+    let tx = await marketPlace.connect(user).getOpenListings(user.address);
     expect(tx.length).to.be.equal(1);
   });
 
@@ -93,7 +93,7 @@ describe("Metawood Marketplace", () => {
   });
 
   it("Should list owned tokens!", async function () {
-    let tx = await marketPlace.connect(user).getOwnedTokens();
+    let tx = await marketPlace.connect(user).getOwnedTokens(user.address);
     expect(BigNumber.from(tx[0])).to.be.equal(1); //tokenId
   });
 

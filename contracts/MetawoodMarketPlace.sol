@@ -90,18 +90,18 @@ contract MetawoodMarketPlace is Ownable, ReentrancyGuard {
         return listings;
     }
 
-    function getOwnedTokens() public view returns (uint256[] memory) {
+    function getOwnedTokens(address _user) public view returns (uint256[] memory) {
         uint256 count = 0;
         uint256 tokenCount = _metawoodNft.getTokenCount();
         for (uint256 i = 1; i <= tokenCount; i++) {
-            if (_metawoodNft.balanceOf(msg.sender, i) > 0) {
+            if (_metawoodNft.balanceOf(_user, i) > 0) {
                 count++;
             }
         }
         uint256[] memory tokenIds = new uint256[](count);
         uint256 counter = 0;
         for (uint256 i = 1; i <= tokenCount; i++) {
-            if (_metawoodNft.balanceOf(msg.sender, i) > 0) {
+            if (_metawoodNft.balanceOf(_user, i) > 0) {
                 tokenIds[counter] = i;
                 counter++;
             }
@@ -110,18 +110,18 @@ contract MetawoodMarketPlace is Ownable, ReentrancyGuard {
     }
 
     //users only listings
-    function getOpenListings() public view returns (Listing[] memory) {
+    function getOpenListings(address _user) public view returns (Listing[] memory) {
         uint256 count = 0;
 
         for (uint256 i = 1; i <= _listingCount.current(); i++) {
-            if (_listings[i].status == ListingState.OPEN && _listings[i].creator == msg.sender) {
+            if (_listings[i].status == ListingState.OPEN && _listings[i].creator == _user) {
                 count++;
             }
         }
 
         Listing[] memory listings = new Listing[](count);
         for (uint256 i = 1; i <= _listingCount.current(); i++) {
-            if (_listings[i].status == ListingState.OPEN && _listings[i].creator == msg.sender) {
+            if (_listings[i].status == ListingState.OPEN && _listings[i].creator == _user) {
                 listings[count - 1] = _listings[i];
                 count--;
             }
