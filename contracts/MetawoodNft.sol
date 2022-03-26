@@ -15,16 +15,20 @@ contract MetawoodNft is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
 
     constructor() ERC1155("") {}
 
+    event SetTokenURI(uint256 _id, string _uri);
     mapping(uint256 => string) private _uris;
 
     function uri(uint256 tokenId) public view override returns (string memory) {
         return _uris[tokenId];
     }
 
+    //function for uri override for specific use cases;
     function setTokenURI(uint256 tokenId, string memory tokenURI) public onlyOwner {
         _uris[tokenId] = tokenURI;
+        emit SetTokenURI(tokenId, tokenURI);
     }
 
+    //default uri set funciton/ can remove
     function setURI(string memory newuri) public onlyOwner {
         _setURI(newuri);
     }
@@ -39,6 +43,8 @@ contract MetawoodNft is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
         //Fix for set uri should be done by the minter without modifiers
         _uris[_tokenCount.current()] = tokenUrl;
         setApprovalForAll(address(_marketPlace), true);
+
+        emit SetTokenURI(_tokenCount.current(), tokenUrl);
     }
 
     function getTokenCount() public view returns (uint256) {
