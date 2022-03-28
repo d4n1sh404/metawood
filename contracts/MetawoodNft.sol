@@ -5,36 +5,50 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "./MetawoodMarketPlace.sol";
 
-contract ERC1155NFT is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
+contract MetawoodNft is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
+    using Counters for Counters.Counter;
+    MetawoodMarketPlace private _marketPlace;
+    Counters.Counter private _tokenCount;
+
     constructor() ERC1155("") {}
 
-    mapping(uint256 => string) _uris;
+    event SetTokenURI(uint256 _id, string _uri);
+    mapping(uint256 => string) private _uris;
 
     function uri(uint256 tokenId) public view override returns (string memory) {
         return _uris[tokenId];
     }
 
-    function setTokenURI(uint256 tokenId, string memory tokenURI)
-        public
-        onlyOwner
-    {
+    //function for uri override for specific use cases;
+    function setTokenURI(uint256 tokenId, string memory tokenURI) public onlyOwner {
         _uris[tokenId] = tokenURI;
+        emit SetTokenURI(tokenId, tokenURI);
     }
 
+    //default uri set funciton/ can remove
     function setURI(string memory newuri) public onlyOwner {
         _setURI(newuri);
     }
 
     function mint(
-        address account,
-        uint256 id,
         uint256 amount,
         string memory tokenUrl,
         bytes memory data
-    ) public onlyOwner {
-        _mint(account, id, amount, data);
-        setTokenURI(id, tokenUrl);
+    ) public {
+        _tokenCount.increment();
+        _mint(msg.sender, _tokenCount.current(), amount, data);
+        //Fix for set uri should be done by the minter without modifiers
+        _uris[_tokenCount.current()] = tokenUrl;
+        setApprovalForAll(address(_marketPlace), true);
+
+        emit SetTokenURI(_tokenCount.current(), tokenUrl);
+    }
+
+    function getTokenCount() public view returns (uint256) {
+        return _tokenCount.current();
     }
 
     function mintBatch(
@@ -44,6 +58,10 @@ contract ERC1155NFT is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
         bytes memory data
     ) public onlyOwner {
         _mintBatch(to, ids, amounts, data);
+    }
+
+    function setMarketPlace(address marketPlaceAddress) public onlyOwner {
+        _marketPlace = MetawoodMarketPlace(marketPlaceAddress);
     }
 
     // The following functions are overrides required by Solidity.

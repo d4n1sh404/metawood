@@ -1,24 +1,39 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.2;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./ERC1155NFT.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./MetawoodNft.sol";
 
-contract MetawoodMarketPlace is Ownable {
-    constructor() {}
+contract MetawoodMarketPlace is Ownable, ReentrancyGuard {
+    MetawoodNft private _metawoodNft;
+
+    event ListingCreated(address indexed creator, uint256 tokenId, uint256 tokenPrice);
+    event ListingClosed(address indexed creator, uint256 listingId);
+    event NFTBuy(uint256 tokenId, uint256 tokenPrice, uint256 listingId, address indexed buyer);
+    event UserSaved(address indexed user, string data);
+
+    constructor(address metawoodNftAddress) {
+        _metawoodNft = MetawoodNft(metawoodNftAddress);
+    }
+
+    using Counters for Counters.Counter;
 
     enum ListingState {
         OPEN,
         CLOSED
     }
-    //use zeppeplien counter later
-    uint256 listingCount = 0;
+
+    Counters.Counter private _listingCount;
 
     struct Listing {
         uint256 id;
         address creator;
         uint256 tokenId;
-        uint256 tokenType;
         uint256 price;
         ListingState status;
     }
@@ -28,26 +43,151 @@ contract MetawoodMarketPlace is Ownable {
         string data;
     }
 
-    mapping(uint256 => Listing) listings;
-    mapping(address => User) users;
+    mapping(uint256 => Listing) private _listings;
+    mapping(string => IERC20) private _supportedTokens;
+    mapping(address => User) private _users;
 
-    function putForSale(
-        uint256 tokenId,
-        uint256 tokenType,
-        uint256 tokenPrice
-    ) public {
-        listingCount++;
-        listings[listingCount] = Listing(
-            listingCount,
+    function addSupportedToken(string memory tokenName, address tokenContract) public onlyOwner {
+        _supportedTokens[tokenName] = IERC20(tokenContract);
+    }
+
+    function createListing(uint256 tokenId, uint256 tokenPrice) public nonReentrant {
+        require(_metawoodNft.balanceOf(msg.sender, tokenId) > 0, "Token Not Owned!");
+
+        _listingCount.increment();
+        uint256 id = _listingCount.current();
+
+        _listings[id] = Listing(id, msg.sender, tokenId, tokenPrice, ListingState.OPEN);
+
+        //get approval for transfer from msg.sender
+        // metawoodNft.setApprovalForAll(address(this), true);
+
+        // TODO emit event
+        emit ListingCreated(msg.sender, tokenId, tokenPrice);
+    }
+
+    function closeListing(uint256 listingId) public nonReentrant {
+        require(_listings[listingId].creator == msg.sender, "Not the creator of the listing!");
+        require(_listings[listingId].status == ListingState.OPEN, "Listing is already closed!!");
+        _listings[listingId].status = ListingState.CLOSED;
+        emit ListingClosed(msg.sender, listingId);
+    }
+
+    function getListing(uint256 listingId) public view returns (Listing memory listing) {
+        return _listings[listingId];
+    }
+
+    function getLatestListings(uint256 threshold) public view returns (Listing[] memory) {
+        Listing[] memory listings = new Listing[](threshold);
+        uint256 count = _listingCount.current();
+        uint256 found = 0;
+        for (; found < threshold && count > 0; count--) {
+            if (_listings[count].status == ListingState.OPEN) {
+                listings[found] = _listings[count];
+                found++;
+            }
+        }
+
+        return listings;
+    }
+
+    function getOwnedTokens(address _user) public view returns (uint256[] memory) {
+        uint256 count = 0;
+        uint256 tokenCount = _metawoodNft.getTokenCount();
+        for (uint256 i = 1; i <= tokenCount; i++) {
+            if (_metawoodNft.balanceOf(_user, i) > 0) {
+                count++;
+            }
+        }
+        uint256[] memory tokenIds = new uint256[](count);
+        uint256 counter = 0;
+        for (uint256 i = 1; i <= tokenCount; i++) {
+            if (_metawoodNft.balanceOf(_user, i) > 0) {
+                tokenIds[counter] = i;
+                counter++;
+            }
+        }
+        return tokenIds;
+    }
+
+    //users only listings
+    function getOpenListings(address _user) public view returns (Listing[] memory) {
+        uint256 count = 0;
+
+        for (uint256 i = 1; i <= _listingCount.current(); i++) {
+            if (_listings[i].status == ListingState.OPEN && _listings[i].creator == _user) {
+                count++;
+            }
+        }
+
+        Listing[] memory listings = new Listing[](count);
+        for (uint256 i = 1; i <= _listingCount.current(); i++) {
+            if (_listings[i].status == ListingState.OPEN && _listings[i].creator == _user) {
+                listings[count - 1] = _listings[i];
+                count--;
+            }
+        }
+        return listings;
+    }
+
+    //all open listings
+    function getAllOpenListings() public view returns (Listing[] memory) {
+        uint256 count = 0;
+
+        for (uint256 i = 1; i <= _listingCount.current(); i++) {
+            if (_listings[i].status == ListingState.OPEN) {
+                count++;
+            }
+        }
+
+        Listing[] memory listings = new Listing[](count);
+        for (uint256 i = 1; i <= _listingCount.current(); i++) {
+            if (_listings[i].status == ListingState.OPEN) {
+                listings[count - 1] = _listings[i];
+                count--;
+            }
+        }
+        return listings;
+    }
+
+    function buyNft(uint256 listingId) public nonReentrant {
+        require(_listings[listingId].status == ListingState.OPEN, "The item is not for sale!!");
+        require(
+            _supportedTokens["native"].balanceOf(msg.sender) >= _listings[listingId].price,
+            "Insufficient funds!!"
+        );
+        require(_listings[listingId].creator != msg.sender, "Cannot Buy Owned Item!");
+
+        _metawoodNft.safeTransferFrom(
+            _listings[listingId].creator,
             msg.sender,
-            tokenId,
-            tokenType,
-            tokenPrice,
-            ListingState.OPEN
+            _listings[listingId].tokenId,
+            1,
+            "0x00"
+        );
+
+        _supportedTokens["native"].transferFrom(
+            msg.sender,
+            _listings[listingId].creator,
+            _listings[listingId].price
+        );
+
+        _listings[listingId].status = ListingState.CLOSED;
+
+        emit NFTBuy(
+            _listings[listingId].tokenId,
+            _listings[listingId].price,
+            listingId,
+            msg.sender
         );
     }
 
-    function addUser(address userAddress, string memory data) public {
-        users[userAddress] = User(userAddress, data);
+    function saveUser(string memory data) public {
+        _users[msg.sender] = User(msg.sender, data);
+        emit UserSaved(msg.sender, data);
+    }
+
+    function getUser(address userAddress) public view returns (User memory) {
+        return _users[userAddress];
     }
 }

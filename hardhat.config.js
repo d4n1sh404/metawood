@@ -11,11 +11,8 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 });
 
 //Declare your .env variables here
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
-const POLYGON_MAINNET_RPC_URL = process.env.POLYGON_MAINNET_RPC_URL;
-const POLYGON_TESTNET_RPC_URL = process.env.POLYGON_TESTNET_RPC_URL;
-
+const { PRIVATE_KEY, ETHERSCAN_API_KEY, POLYGON_MAINNET_RPC_URL, POLYGON_TESTNET_RPC_URL } =
+  process.env;
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
