@@ -1,7 +1,7 @@
 {
   "name": "MetawoodNft",
   "network": "mumbai",
-  "address": "0xc9c6b0c56886dF04Ba6F0542EbC3148032A6E1dC",
+  "address": "0xc2A6B6937FbbF6ebAC978450c246f22D134aA0eB",
   "abi": [
     {
       "inputs": [],
@@ -50,6 +50,25 @@
         }
       ],
       "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "_id",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "_uri",
+          "type": "string"
+        }
+      ],
+      "name": "SetTokenURI",
       "type": "event"
     },
     {

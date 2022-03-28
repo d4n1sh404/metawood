@@ -1,7 +1,7 @@
 {
   "name": "MetawoodMarketPlace",
   "network": "mumbai",
-  "address": "0xf087de98223BB8C413c63595aEC054fc9d44A68F",
+  "address": "0x09916186Ca8B05572aAA8B7c030Fe92e0ea18620",
   "abi": [
     {
       "inputs": [
@@ -109,6 +109,25 @@
       "type": "event"
     },
     {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "data",
+          "type": "string"
+        }
+      ],
+      "name": "UserSaved",
+      "type": "event"
+    },
+    {
       "inputs": [
         {
           "internalType": "string",
@@ -122,24 +141,6 @@
         }
       ],
       "name": "addSupportedToken",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "userAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "string",
-          "name": "data",
-          "type": "string"
-        }
-      ],
-      "name": "addUser",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -321,7 +322,13 @@
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        }
+      ],
       "name": "getOpenListings",
       "outputs": [
         {
@@ -361,7 +368,13 @@
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        }
+      ],
       "name": "getOwnedTokens",
       "outputs": [
         {
@@ -420,6 +433,19 @@
     {
       "inputs": [],
       "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "data",
+          "type": "string"
+        }
+      ],
+      "name": "saveUser",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
