@@ -15,6 +15,7 @@ contract MetawoodMarketPlace is Ownable, ReentrancyGuard {
     event ListingCreated(address indexed creator, uint256 tokenId, uint256 tokenPrice);
     event ListingClosed(address indexed creator, uint256 listingId);
     event NFTBuy(uint256 tokenId, uint256 tokenPrice, uint256 listingId, address indexed buyer);
+    event UserSaved(address indexed user, string data);
 
     constructor(address metawoodNftAddress) {
         _metawoodNft = MetawoodNft(metawoodNftAddress);
@@ -181,8 +182,9 @@ contract MetawoodMarketPlace is Ownable, ReentrancyGuard {
         );
     }
 
-    function addUser(address userAddress, string memory data) public {
-        _users[userAddress] = User(userAddress, data);
+    function saveUser(string memory data) public {
+        _users[msg.sender] = User(msg.sender, data);
+        emit UserSaved(msg.sender, data);
     }
 
     function getUser(address userAddress) public view returns (User memory) {

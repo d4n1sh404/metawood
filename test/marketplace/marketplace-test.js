@@ -117,11 +117,19 @@ describe("Metawood Marketplace", () => {
   });
 
   it("Should register a new User!", async function () {
-    let tx = await marketPlace.addUser(user.address, "datauri");
+    let tx = await marketPlace.connect(user).saveUser( "datauri");
   });
 
   it("Should get the registered User!", async function () {
     let tx = await marketPlace.getUser(user.address);
     expect(tx.data == "datauri");
   });
+
+
+  it("Should update the User!", async function () {
+    await marketPlace.connect(user).saveUser("newdata");
+    let tx = await marketPlace.getUser(user.address);
+    expect(tx.data == "newdata");
+  });
+
 });
