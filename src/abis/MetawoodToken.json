@@ -1,7 +1,7 @@
 {
   "name": "MetawoodToken",
   "network": "mumbai",
-  "address": "0x3F0a5F2cF3058cC24d8528E074a96c6F4D9d805f",
+  "address": "0xd8dfFaCcB1eDBd1B0825F50f05b57844338B596E",
   "abi": [
     {
       "inputs": [],
