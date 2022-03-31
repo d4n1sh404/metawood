@@ -1,67 +1,143 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "./MetawoodMarketPlace.sol";
+import "./libraries/ContextMixin.sol";
 
-contract MetawoodNft is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
+contract MetawoodNFT is
+    ERC1155,
+    ContextMixin,
+    Ownable,
+    AccessControl,
+    Pausable,
+    ERC1155Burnable,
+    ERC1155Supply
+{
     using Counters for Counters.Counter;
-    MetawoodMarketPlace private _marketPlace;
-    Counters.Counter private _tokenCount;
 
-    constructor() ERC1155("") {}
+    Counters.Counter private _tokenIdCounter;
 
-    event SetTokenURI(uint256 _id, string _uri);
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
     mapping(uint256 => string) private _uris;
 
-    function uri(uint256 tokenId) public view override returns (string memory) {
-        return _uris[tokenId];
+    address public metawoodMarketPlace;
+
+    event SetTokenURI(uint256 tokenId, string tokenURI);
+    event SetBaseURI(string metadataBaseURI);
+
+    modifier ensureNonZeroAddress(address addressToCheck) {
+        require(addressToCheck != address(0), "No zero address");
+        _;
     }
 
-    //function for uri override for specific use cases;
-    function setTokenURI(uint256 tokenId, string memory tokenURI) public onlyOwner {
-        _uris[tokenId] = tokenURI;
-        emit SetTokenURI(tokenId, tokenURI);
+    constructor(string memory _metadataBaseURI) ERC1155(_metadataBaseURI) {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(MINTER_ROLE, msg.sender);
     }
 
-    //default uri set funciton/ can remove
-    function setURI(string memory newuri) public onlyOwner {
-        _setURI(newuri);
+    function pause() public onlyOwner {
+        _pause();
+    }
+
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+
+    function setMetawoodMarketPlace(address _newMetawoodMarketPlace)
+        external
+        onlyOwner
+        ensureNonZeroAddress(_newMetawoodMarketPlace)
+    {
+        metawoodMarketPlace = _newMetawoodMarketPlace;
+    }
+
+    function uri(uint256 _tokenId) public view override returns (string memory) {
+        return _uris[_tokenId];
+    }
+
+    //use properly since there are no requires here
+    function setTokenURI(uint256 _tokenId, string memory _tokenURI) external onlyOwner {
+        _uris[_tokenId] = _tokenURI;
+        emit SetTokenURI(_tokenId, _tokenURI);
+    }
+
+    function setMetadataBaseURI(string memory _newMetadataBaseURI) external onlyOwner {
+        _setURI(_newMetadataBaseURI);
+        emit SetBaseURI(_newMetadataBaseURI);
+    }
+
+    function getTokenCount() external view returns (uint256) {
+        return _tokenIdCounter.current();
     }
 
     function mint(
-        uint256 amount,
-        string memory tokenUrl,
-        bytes memory data
-    ) public {
-        _tokenCount.increment();
-        _mint(msg.sender, _tokenCount.current(), amount, data);
-        //Fix for set uri should be done by the minter without modifiers
-        _uris[_tokenCount.current()] = tokenUrl;
-        setApprovalForAll(address(_marketPlace), true);
-
-        emit SetTokenURI(_tokenCount.current(), tokenUrl);
+        address _account,
+        uint256 _amount,
+        string memory _tokenUrl,
+        bytes memory _data
+    ) external onlyRole(MINTER_ROLE) ensureNonZeroAddress(_account) {
+        require(_amount >= 1, "MetawoodNFT: invalid amount parameter");
+        _mint(_account, _tokenIdCounter.current(), _amount, _data);
+        _uris[_tokenIdCounter.current()] = _tokenUrl;
+        _tokenIdCounter.increment();
     }
 
-    function getTokenCount() public view returns (uint256) {
-        return _tokenCount.current();
-    }
-
+    //Implementation similar to mint (not for creating supply of single tokenID but batch minting NFTs with any supply)
+    //Be careful during minting and batch minting. Test thoroughly
     function mintBatch(
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts,
-        bytes memory data
-    ) public onlyOwner {
-        _mintBatch(to, ids, amounts, data);
+        address _account,
+        uint256[] memory _amounts,
+        string[] memory _tokenUrls,
+        bytes memory _data
+    ) external onlyRole(MINTER_ROLE) ensureNonZeroAddress(_account) {
+        require(
+            _tokenUrls.length == _amounts.length,
+            "MetawoodNFT: tokenUrls and amounts length mismatch"
+        );
+        uint256[] memory _ids = new uint256[](_amounts.length);
+        for (uint256 i = 0; i < _amounts.length; i++) {
+            require(_amounts[i] >= 1, "MetawoodNFT: invalid amount parameter");
+            _ids[i] = _tokenIdCounter.current();
+            _uris[_tokenIdCounter.current()] = _tokenUrls[i];
+            _tokenIdCounter.increment();
+        }
+        _mintBatch(_account, _ids, _amounts, _data);
     }
 
-    function setMarketPlace(address marketPlaceAddress) public onlyOwner {
-        _marketPlace = MetawoodMarketPlace(marketPlaceAddress);
+    //opensea suported methods
+
+    /**
+     * Override isApprovedForAll to auto-approve OS's proxy contract
+     */
+    function isApprovedForAll(address _owner, address _operator)
+        public
+        view
+        override
+        returns (bool isOperator)
+    {
+        // if OpenSea's ERC1155 Proxy Address is detected, auto-return true
+        if (
+            _operator == address(0x207Fa8Df3a17D96Ca7EA4f2893fcdCb78a304101) ||
+            _operator == address(metawoodMarketPlace)
+        ) {
+            return true;
+        }
+        // otherwise, use the default ERC1155.isApprovedForAll()
+        return ERC1155.isApprovedForAll(_owner, _operator);
+    }
+
+    /**
+     * This is used instead of msg.sender as transactions won't be sent by the original token owner, but by OpenSea.
+     */
+    function _msgSender() internal view override returns (address sender) {
+        return ContextMixin.msgSender();
     }
 
     // The following functions are overrides required by Solidity.
@@ -73,7 +149,16 @@ contract MetawoodNft is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
         uint256[] memory ids,
         uint256[] memory amounts,
         bytes memory data
-    ) internal override(ERC1155, ERC1155Supply) {
+    ) internal override(ERC1155, ERC1155Supply) whenNotPaused {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC1155, AccessControl)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
     }
 }
