@@ -18,12 +18,6 @@
       "anonymous": false,
       "inputs": [
         {
-          "indexed": true,
-          "internalType": "address",
-          "name": "creator",
-          "type": "address"
-        },
-        {
           "indexed": false,
           "internalType": "uint256",
           "name": "listingId",
@@ -36,6 +30,12 @@
     {
       "anonymous": false,
       "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "listingId",
+          "type": "uint256"
+        },
         {
           "indexed": true,
           "internalType": "address",
