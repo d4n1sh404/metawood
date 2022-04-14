@@ -192,9 +192,3 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
         listing = _listings[_listingId];
     }
 }
-
-//getters based on index 0 by danish and abis update
-//Deployment scripts and deployment
-//abis and updates
-//close listings only owner items
-//moving to v2 updates
