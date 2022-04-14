@@ -119,7 +119,7 @@ contract MetawoodNFT is
     /**
      * Override isApprovedForAll to auto-approve OS's proxy contract
      */
-    function isApprovedForAll(address _owner, address _operator)
+    function isApprovedForAll(address _tokenOwner, address _operator)
         public
         view
         override
@@ -133,7 +133,7 @@ contract MetawoodNFT is
             return true;
         }
         // otherwise, use the default ERC1155.isApprovedForAll()
-        return ERC1155.isApprovedForAll(_owner, _operator);
+        return ERC1155.isApprovedForAll(_tokenOwner, _operator);
     }
 
     /**
