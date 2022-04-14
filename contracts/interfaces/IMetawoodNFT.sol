@@ -27,4 +27,8 @@ interface IMetawoodNFT is IERC1155 {
         string[] memory _tokenUrls,
         bytes memory _data
     ) external;
+
+    function totalSupply(uint256 id) external view returns (uint256);
+
+    function exists(uint256 id) external view returns (bool);
 }
