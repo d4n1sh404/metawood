@@ -6,10 +6,11 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "./interfaces/IMetawoodNFT.sol";
 import "./libraries/TransferHelper.sol";
 
-contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard {
+contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
 
@@ -79,6 +80,7 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard {
         external
         nonReentrant
         ensureNFTOwner(_tokenId)
+        whenNotPaused
     {
         require(msg.sender != address(0));
         require(_tokenPrice > 0, "Metawood Marketplace: Price must be at least 1 wei");
@@ -110,6 +112,7 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard {
         external
         nonReentrant
         ensureValidListing(_listingId)
+        whenNotPaused
     {
         Listing memory listing = _listings[_listingId];
         require(
@@ -128,10 +131,6 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard {
         emit ListingPriceUpdated(_listingId, _newTokenPrice);
     }
 
-    function getListing(uint256 _listingId) external view returns (Listing memory listing) {
-        listing = _listings[_listingId];
-    }
-
     //one listing one tokenId one seller
 
     function purchaseNFT(uint256 _listingId)
@@ -139,6 +138,7 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard {
         payable
         nonReentrant
         ensureValidListing(_listingId)
+        whenNotPaused
     {
         Listing memory listing = _listings[_listingId];
 
@@ -177,8 +177,23 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard {
     function withdrawReceivedEther() external onlyOwner nonReentrant {
         TransferHelper.safeTransferETH(msg.sender, address(this).balance);
     }
+
+    function pause() public onlyOwner {
+        _pause();
+    }
+
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+
+    //Getter Functions
+
+    function getListing(uint256 _listingId) external view returns (Listing memory listing) {
+        listing = _listings[_listingId];
+    }
 }
 
 //getters based on index 0 by danish and abis update
+//Deployment scripts and deployment
 //close listings only owner items
 //moving to v2 updates
