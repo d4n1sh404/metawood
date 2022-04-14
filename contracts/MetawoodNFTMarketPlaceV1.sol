@@ -23,6 +23,7 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
     }
 
     struct Listing {
+        uint256 listingId;
         address seller;
         uint256 tokenId;
         uint256 tokenPrice;
@@ -85,7 +86,13 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
         require(msg.sender != address(0));
         require(_tokenPrice > 0, "Metawood Marketplace: Price must be at least 1 wei");
         uint256 listingId = _listingCounter.current();
-        _listings[listingId] = Listing(msg.sender, _tokenId, _tokenPrice, ListingState.OPEN);
+        _listings[listingId] = Listing(
+            listingId,
+            msg.sender,
+            _tokenId,
+            _tokenPrice,
+            ListingState.OPEN
+        );
         emit ListingCreated(listingId, msg.sender, _tokenId, _tokenPrice);
         _listingCounter.increment();
     }
@@ -239,7 +246,7 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
         return listings;
     }
 
-     function getOwnedTokens(address _user) external view returns (uint256[] memory) {
+    function getOwnedTokens(address _user) external view returns (uint256[] memory) {
         uint256 count = 0;
         uint256 tokenCount = metawoodNFT.getTokenCount();
         for (uint256 i = 0; i < tokenCount; i++) {
