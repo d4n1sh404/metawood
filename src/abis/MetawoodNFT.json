@@ -1,7 +1,7 @@
 {
   "name": "MetawoodNFT",
   "network": "mumbai",
-  "address": "0xB6a9805A6e5c9266548f346E5090a4656e3C3903",
+  "address": "0x6D16a2C079ec67731B982D8B0D412651CCdC8602",
   "abi": [
     {
       "inputs": [
@@ -47,6 +47,12 @@
           "internalType": "uint256",
           "name": "tokenId",
           "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "tokenURI",
+          "type": "string"
         },
         {
           "indexed": false,
