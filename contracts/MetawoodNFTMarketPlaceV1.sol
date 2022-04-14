@@ -91,7 +91,7 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
     }
 
     function closeListing(uint256 _listingId) external nonReentrant ensureValidListing(_listingId) {
-        Listing memory listing = _listings[_listingId];
+        Listing storage listing = _listings[_listingId];
         require(
             listing.seller == msg.sender,
             "Metawood Marketplace: Not the seller of the listing!"
@@ -114,7 +114,7 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
         ensureValidListing(_listingId)
         whenNotPaused
     {
-        Listing memory listing = _listings[_listingId];
+        Listing storage listing = _listings[_listingId];
         require(
             listing.seller == msg.sender,
             "Metawood Marketplace: Not the seller of the listing!"
@@ -140,7 +140,7 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
         ensureValidListing(_listingId)
         whenNotPaused
     {
-        Listing memory listing = _listings[_listingId];
+        Listing storage listing = _listings[_listingId];
 
         require(
             listing.status == ListingState.OPEN,
