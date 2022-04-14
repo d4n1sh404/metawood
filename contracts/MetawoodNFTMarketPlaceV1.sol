@@ -191,4 +191,70 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
     function getListing(uint256 _listingId) external view returns (Listing memory listing) {
         listing = _listings[_listingId];
     }
+
+    function getLatestListings(uint256 threshold) external view returns (Listing[] memory) {
+        Listing[] memory listings = new Listing[](threshold);
+        uint256 count = _listingCounter.current();
+        uint256 found = 0;
+        for (; found < threshold && count > 0; count--) {
+            if (_listings[count].status == ListingState.OPEN) {
+                listings[found] = _listings[count];
+                found++;
+            }
+        }
+        return listings;
+    }
+
+    function getOpenListings(address _user) external view returns (Listing[] memory) {
+        uint256 count = 0;
+        for (uint256 i = 0; i < _listingCounter.current(); i++) {
+            if (_listings[i].status == ListingState.OPEN && _listings[i].seller == _user) {
+                count++;
+            }
+        }
+        Listing[] memory listings = new Listing[](count);
+        for (uint256 i = 0; i < _listingCounter.current(); i++) {
+            if (_listings[i].status == ListingState.OPEN && _listings[i].seller == _user) {
+                listings[count - 1] = _listings[i];
+                count--;
+            }
+        }
+        return listings;
+    }
+
+    function getAllOpenListings() external view returns (Listing[] memory) {
+        uint256 count = 0;
+        for (uint256 i = 0; i < _listingCounter.current(); i++) {
+            if (_listings[i].status == ListingState.OPEN) {
+                count++;
+            }
+        }
+        Listing[] memory listings = new Listing[](count);
+        for (uint256 i = 0; i < _listingCounter.current(); i++) {
+            if (_listings[i].status == ListingState.OPEN) {
+                listings[count - 1] = _listings[i];
+                count--;
+            }
+        }
+        return listings;
+    }
+
+     function getOwnedTokens(address _user) external view returns (uint256[] memory) {
+        uint256 count = 0;
+        uint256 tokenCount = metawoodNFT.getTokenCount();
+        for (uint256 i = 0; i < tokenCount; i++) {
+            if (metawoodNFT.balanceOf(_user, i) > 0) {
+                count++;
+            }
+        }
+        uint256[] memory tokenIds = new uint256[](count);
+        uint256 counter = 0;
+        for (uint256 i = 0; i < tokenCount; i++) {
+            if (metawoodNFT.balanceOf(_user, i) > 0) {
+                tokenIds[counter] = i;
+                counter++;
+            }
+        }
+        return tokenIds;
+    }
 }
