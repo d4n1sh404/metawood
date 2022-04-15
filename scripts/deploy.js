@@ -2,30 +2,23 @@ const { ethers } = require("hardhat");
 const { saveAbi } = require("./utils");
 
 const main = async () => {
-  const NftContract = await ethers.getContractFactory("MetawoodNft");
-  nftContract = await NftContract.deploy();
+  const NftContract = await ethers.getContractFactory("MetawoodNFT");
+  nftContract = await NftContract.deploy("");
 
   await nftContract.deployed();
 
-  const TokenContract = await ethers.getContractFactory("MetawoodToken");
-  nativeToken = await TokenContract.deploy();
-
-  const MarketPlaceContract = await ethers.getContractFactory("MetawoodMarketPlace");
+  const MarketPlaceContract = await ethers.getContractFactory("MetawoodNFTMarketPlaceV1");
   marketPlace = await MarketPlaceContract.deploy(nftContract.address);
 
-  console.log("Token deployed to:", nativeToken.address);
   console.log("Nft deployed to:", nftContract.address);
   console.log("Marketplace deployed to:", marketPlace.address);
 
-  await marketPlace.addSupportedToken("native", nativeToken.address);
-  await nftContract.setMarketPlace(marketPlace.address);
+  await nftContract.setMetawoodMarketPlace(marketPlace.address);
 
 
-  saveAbi("MetawoodNft", nftContract);
-  saveAbi("MetawoodToken", nativeToken);
-  saveAbi("MetawoodMarketPlace", marketPlace);
+  saveAbi("MetawoodNFT", nftContract);
+  saveAbi("MetawoodNFTMarketPlaceV1", marketPlace);
 
-  await nativeToken.deployed();
   await marketPlace.deployed();
 };
 
