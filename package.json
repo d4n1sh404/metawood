@@ -9,19 +9,21 @@
     "lint": "./node_modules/.bin/solhint contracts/**/*.sol",
     "compile": "npx hardhat compile",
     "test": "hardhat test",
-    "format": "./node_modules/.bin/prettier --write contracts/**/*.sol"
+    "format": "./node_modules/.bin/prettier --write contracts/**/*.sol",
+    "deployMetawoodContracts:test": "HARDHAT_NETWORK=mumbai npx hardhat run scripts/deploy.js",
+    "deployMetawoodContracts:main": "HARDHAT_NETWORK=matic npx hardhat run scripts/deploy.js"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.5.0",
-    "dotenv": "^16.0.0",
-    "chai-as-promised": "^7.1.1"
+    "chai-as-promised": "^7.1.1",
+    "dotenv": "^16.0.0"
   },
   "devDependencies": {
-    "@openzeppelin/hardhat-upgrades": "^1.16.1",
-    "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "@nomiclabs/hardhat-ethers": "^2.0.5",
+    "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "@openzeppelin/contracts": "^4.5.0",
+    "@openzeppelin/hardhat-upgrades": "^1.16.1",
     "chai": "^4.3.6",
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.6.0",

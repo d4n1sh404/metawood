@@ -2,24 +2,35 @@ const { ethers } = require("hardhat");
 const { saveAbi } = require("./utils");
 
 const main = async () => {
-  const NftContract = await ethers.getContractFactory("MetawoodNFT");
-  nftContract = await NftContract.deploy("");
+  const MetawoodNFTContract = await ethers.getContractFactory("MetawoodNFT");
+  const metawoodNFTContractInstance = await MetawoodNFTContract.deploy("");
 
-  await nftContract.deployed();
+  await metawoodNFTContractInstance.deployed();
+  console.log("Metawood NFT ERC1155 deployed at " + metawoodNFTContractInstance.address);
+  await metawoodNFTContractInstance.deployTransaction.wait([(confirms = 6)]);
+
+  await hre.run("verify:verify", {
+    address: metawoodNFTContractInstance.address,
+    constructorArguments: [""],
+  });
 
   const MarketPlaceContract = await ethers.getContractFactory("MetawoodNFTMarketPlaceV1");
-  marketPlace = await MarketPlaceContract.deploy(nftContract.address);
+  const marketPlaceContractInstance = await MarketPlaceContract.deploy(
+    metawoodNFTContractInstance.address
+  );
+  await marketPlaceContractInstance.deployed();
+  console.log("Marketplace deployed to:", marketPlaceContractInstance.address);
+  await marketPlaceContractInstance.deployTransaction.wait([(confirms = 6)]);
 
-  console.log("Nft deployed to:", nftContract.address);
-  console.log("Marketplace deployed to:", marketPlace.address);
+  await hre.run("verify:verify", {
+    address: marketPlaceContractInstance.address,
+    constructorArguments: [metawoodNFTContractInstance.address],
+  });
 
-  await nftContract.setMetawoodMarketPlace(marketPlace.address);
+  await metawoodNFTContractInstance.setMetawoodMarketPlace(marketPlaceContractInstance.address);
 
-
-  saveAbi("MetawoodNFT", nftContract);
-  saveAbi("MetawoodNFTMarketPlaceV1", marketPlace);
-
-  await marketPlace.deployed();
+  saveAbi("MetawoodNFT", metawoodNFTContractInstance);
+  saveAbi("MetawoodNFTMarketPlaceV1", marketPlaceContractInstance);
 };
 
 // We recommend this pattern to be able to use async/await everywhere
