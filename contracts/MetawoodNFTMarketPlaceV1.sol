@@ -189,11 +189,11 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
         TransferHelper.safeTransferETH(msg.sender, address(this).balance);
     }
 
-    function pause() public onlyOwner {
+    function pause() external onlyOwner {
         _pause();
     }
 
-    function unpause() public onlyOwner {
+    function unpause() external onlyOwner {
         _unpause();
     }
 
