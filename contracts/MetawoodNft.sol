@@ -43,11 +43,11 @@ contract MetawoodNFT is
         _grantRole(MINTER_ROLE, msg.sender);
     }
 
-    function pause() public onlyOwner {
+    function pause() external onlyOwner {
         _pause();
     }
 
-    function unpause() public onlyOwner {
+    function unpause() external onlyOwner {
         _unpause();
     }
 
@@ -87,7 +87,7 @@ contract MetawoodNFT is
         require(_amount >= 1, "MetawoodNFT: invalid amount parameter");
         _mint(_account, _tokenIdCounter.current(), _amount, _data);
         _uris[_tokenIdCounter.current()] = _tokenUrl;
-        emit MetawoodNFTMinted(_tokenIdCounter.current(),_tokenUrl, _account);
+        emit MetawoodNFTMinted(_tokenIdCounter.current(), _tokenUrl, _account);
         _tokenIdCounter.increment();
     }
 
@@ -108,7 +108,7 @@ contract MetawoodNFT is
             require(_amounts[i] >= 1, "MetawoodNFT: invalid amount parameter");
             _ids[i] = _tokenIdCounter.current();
             _uris[_tokenIdCounter.current()] = _tokenUrls[i];
-            emit MetawoodNFTMinted(_tokenIdCounter.current(),_tokenUrls[i], _account);
+            emit MetawoodNFTMinted(_tokenIdCounter.current(), _tokenUrls[i], _account);
             _tokenIdCounter.increment();
         }
         _mintBatch(_account, _ids, _amounts, _data);

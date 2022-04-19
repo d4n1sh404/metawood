@@ -9,7 +9,9 @@
     "lint": "./node_modules/.bin/solhint contracts/**/*.sol",
     "compile": "npx hardhat compile",
     "test": "hardhat test",
-    "format": "./node_modules/.bin/prettier --write contracts/**/*.sol"
+    "format": "./node_modules/.bin/prettier --write contracts/**/*.sol",
+    "deployMetawoodContracts:test": "HARDHAT_NETWORK=mumbai npx hardhat run scripts/deploy.js",
+    "deployMetawoodContracts:main": "HARDHAT_NETWORK=matic npx hardhat run scripts/deploy.js"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.5.0",
