@@ -1,13 +1,13 @@
 {
-  "name": "MetawoodMarketPlace",
+  "name": "MetawoodNFTMarketPlaceV1",
   "network": "mumbai",
-  "address": "0x856FD9e9a39b09B0A4c539A73Ef3E15e51C2F1e5",
+  "address": "0x5F8502D34e2FcbC63631989c6f0bFb3A2025D030",
   "abi": [
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "metawoodNftAddress",
+          "internalType": "contract IMetawoodNFT",
+          "name": "_metawoodNFT",
           "type": "address"
         }
       ],
@@ -38,12 +38,18 @@
         },
         {
           "indexed": true,
+          "internalType": "uint256",
+          "name": "listingId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
           "internalType": "address",
-          "name": "creator",
+          "name": "seller",
           "type": "address"
         },
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "uint256",
           "name": "tokenId",
           "type": "uint256"
@@ -62,7 +68,44 @@
       "anonymous": false,
       "inputs": [
         {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "listingId",
+          "type": "uint256"
+        },
+        {
           "indexed": false,
+          "internalType": "uint256",
+          "name": "newTokenPrice",
+          "type": "uint256"
+        }
+      ],
+      "name": "ListingPriceUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "listingId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "buyer",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "seller",
+          "type": "address"
+        },
+        {
+          "indexed": true,
           "internalType": "uint256",
           "name": "tokenId",
           "type": "uint256"
@@ -72,21 +115,9 @@
           "internalType": "uint256",
           "name": "tokenPrice",
           "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "listingId",
-          "type": "uint256"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "buyer",
-          "type": "address"
         }
       ],
-      "name": "NFTBuy",
+      "name": "NFTPurchased",
       "type": "event"
     },
     {
@@ -112,48 +143,42 @@
       "anonymous": false,
       "inputs": [
         {
-          "indexed": true,
-          "internalType": "address",
-          "name": "user",
-          "type": "address"
-        },
-        {
           "indexed": false,
-          "internalType": "string",
-          "name": "data",
-          "type": "string"
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
         }
       ],
-      "name": "UserSaved",
+      "name": "Paused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "Unpaused",
       "type": "event"
     },
     {
       "inputs": [
         {
-          "internalType": "string",
-          "name": "tokenName",
-          "type": "string"
+          "internalType": "uint256",
+          "name": "_listingId",
+          "type": "uint256"
         },
         {
-          "internalType": "address",
-          "name": "tokenContract",
-          "type": "address"
-        }
-      ],
-      "name": "addSupportedToken",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
           "internalType": "uint256",
-          "name": "listingId",
+          "name": "_newTokenPrice",
           "type": "uint256"
         }
       ],
-      "name": "buyNft",
+      "name": "changeListingPrice",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -162,7 +187,7 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "listingId",
+          "name": "_listingId",
           "type": "uint256"
         }
       ],
@@ -175,12 +200,12 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "tokenId",
+          "name": "_tokenId",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
-          "name": "tokenPrice",
+          "name": "_tokenPrice",
           "type": "uint256"
         }
       ],
@@ -197,12 +222,12 @@
           "components": [
             {
               "internalType": "uint256",
-              "name": "id",
+              "name": "listingId",
               "type": "uint256"
             },
             {
               "internalType": "address",
-              "name": "creator",
+              "name": "seller",
               "type": "address"
             },
             {
@@ -212,16 +237,16 @@
             },
             {
               "internalType": "uint256",
-              "name": "price",
+              "name": "tokenPrice",
               "type": "uint256"
             },
             {
-              "internalType": "enum MetawoodMarketPlace.ListingState",
+              "internalType": "enum MetawoodNFTMarketPlaceV1.ListingState",
               "name": "status",
               "type": "uint8"
             }
           ],
-          "internalType": "struct MetawoodMarketPlace.Listing[]",
+          "internalType": "struct MetawoodNFTMarketPlaceV1.Listing[]",
           "name": "",
           "type": "tuple[]"
         }
@@ -243,12 +268,12 @@
           "components": [
             {
               "internalType": "uint256",
-              "name": "id",
+              "name": "listingId",
               "type": "uint256"
             },
             {
               "internalType": "address",
-              "name": "creator",
+              "name": "seller",
               "type": "address"
             },
             {
@@ -258,16 +283,16 @@
             },
             {
               "internalType": "uint256",
-              "name": "price",
+              "name": "tokenPrice",
               "type": "uint256"
             },
             {
-              "internalType": "enum MetawoodMarketPlace.ListingState",
+              "internalType": "enum MetawoodNFTMarketPlaceV1.ListingState",
               "name": "status",
               "type": "uint8"
             }
           ],
-          "internalType": "struct MetawoodMarketPlace.Listing[]",
+          "internalType": "struct MetawoodNFTMarketPlaceV1.Listing[]",
           "name": "",
           "type": "tuple[]"
         }
@@ -279,7 +304,7 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "listingId",
+          "name": "_listingId",
           "type": "uint256"
         }
       ],
@@ -289,12 +314,12 @@
           "components": [
             {
               "internalType": "uint256",
-              "name": "id",
+              "name": "listingId",
               "type": "uint256"
             },
             {
               "internalType": "address",
-              "name": "creator",
+              "name": "seller",
               "type": "address"
             },
             {
@@ -304,16 +329,16 @@
             },
             {
               "internalType": "uint256",
-              "name": "price",
+              "name": "tokenPrice",
               "type": "uint256"
             },
             {
-              "internalType": "enum MetawoodMarketPlace.ListingState",
+              "internalType": "enum MetawoodNFTMarketPlaceV1.ListingState",
               "name": "status",
               "type": "uint8"
             }
           ],
-          "internalType": "struct MetawoodMarketPlace.Listing",
+          "internalType": "struct MetawoodNFTMarketPlaceV1.Listing",
           "name": "listing",
           "type": "tuple"
         }
@@ -335,12 +360,12 @@
           "components": [
             {
               "internalType": "uint256",
-              "name": "id",
+              "name": "listingId",
               "type": "uint256"
             },
             {
               "internalType": "address",
-              "name": "creator",
+              "name": "seller",
               "type": "address"
             },
             {
@@ -350,16 +375,16 @@
             },
             {
               "internalType": "uint256",
-              "name": "price",
+              "name": "tokenPrice",
               "type": "uint256"
             },
             {
-              "internalType": "enum MetawoodMarketPlace.ListingState",
+              "internalType": "enum MetawoodNFTMarketPlaceV1.ListingState",
               "name": "status",
               "type": "uint8"
             }
           ],
-          "internalType": "struct MetawoodMarketPlace.Listing[]",
+          "internalType": "struct MetawoodNFTMarketPlaceV1.Listing[]",
           "name": "",
           "type": "tuple[]"
         }
@@ -387,31 +412,13 @@
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "userAddress",
-          "type": "address"
-        }
-      ],
-      "name": "getUser",
+      "inputs": [],
+      "name": "metawoodNFT",
       "outputs": [
         {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "userId",
-              "type": "address"
-            },
-            {
-              "internalType": "string",
-              "name": "data",
-              "type": "string"
-            }
-          ],
-          "internalType": "struct MetawoodMarketPlace.User",
+          "internalType": "contract IMetawoodNFT",
           "name": "",
-          "type": "tuple"
+          "type": "address"
         }
       ],
       "stateMutability": "view",
@@ -432,20 +439,40 @@
     },
     {
       "inputs": [],
-      "name": "renounceOwnership",
+      "name": "pause",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
     {
-      "inputs": [
+      "inputs": [],
+      "name": "paused",
+      "outputs": [
         {
-          "internalType": "string",
-          "name": "data",
-          "type": "string"
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
         }
       ],
-      "name": "saveUser",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_listingId",
+          "type": "uint256"
+        }
+      ],
+      "name": "purchaseNFT",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -462,6 +489,37 @@
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "unpause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "_token",
+          "type": "address"
+        }
+      ],
+      "name": "withdrawERC20",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "withdrawReceivedEther",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "receive"
     }
   ]
 }
