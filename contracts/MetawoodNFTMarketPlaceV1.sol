@@ -31,6 +31,8 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
     }
 
     mapping(uint256 => Listing) private _listings;
+    //1 tokenId should only have 1 listing linked to it always when theere is absolute certainty that 1 tokenId represents 1 token i.e. with supply 1
+    mapping(uint256 => uint256) private _tokenIdToListingId;
 
     event ListingCreated(
         uint256 indexed listingId,
@@ -85,6 +87,9 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
     {
         require(msg.sender != address(0));
         require(_tokenPrice > 0, "Metawood Marketplace: Price must be at least 1 wei");
+        Listing memory latestListing = _listings[_tokenIdToListingId[_tokenId]];
+        if (latestListing.seller == msg.sender && latestListing.status == ListingState.OPEN)
+            revert("Token Owner has already created listing for this tokenId");
         uint256 listingId = _listingCounter.current();
         _listings[listingId] = Listing(
             listingId,
@@ -93,6 +98,7 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
             _tokenPrice,
             ListingState.OPEN
         );
+        _tokenIdToListingId[_tokenId] = listingId;
         emit ListingCreated(listingId, msg.sender, _tokenId, _tokenPrice);
         _listingCounter.increment();
     }
