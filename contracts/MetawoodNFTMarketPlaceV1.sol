@@ -215,7 +215,7 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
         uint256 found = 0;
         for (; found < threshold && count > 0; count--) {
             if (_listings[count].status == ListingState.OPEN) {
-                listings[found] = _listings[count];
+                listings[found] = _listings[count - 1];
                 found++;
             }
         }
