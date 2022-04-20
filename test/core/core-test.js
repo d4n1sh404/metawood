@@ -193,7 +193,7 @@ describe.only("Metawood marketplace Core test cases", function () {
     expect(isPaused).to.equal(false);
   });
 
-  it("Mint Batch should work", async function () {
+  it("Batch Mint should work", async function () {
     await expect(
       this.metawoodNFTContractInstance
         .connect(this.user1)
@@ -227,6 +227,11 @@ describe.only("Metawood marketplace Core test cases", function () {
     expect(userstokenBalance).to.equal(1);
     expect(exists).to.equal(true);
     expect(totalSupply).to.equal(1);
+
+    //Sending NFTs to user2 for future tests
+    await this.metawoodNFTContractInstance
+      .connect(this.user1)
+      .safeBatchTransferFrom(this.user1.address, this.user2.address, [1, 2], [1, 1], "0x00");
   });
 
   it.skip("Burn and BurnBatch should work", async function () {
@@ -244,5 +249,74 @@ describe.only("Metawood marketplace Core test cases", function () {
     expect(userstokenBalance).to.equal(0);
     expect(exists).to.equal(false);
     expect(totalSupply).to.equal(0);
+  });
+
+  it("should set correct state variables for MetawoodMarketplaceV1 Contract", async function () {
+    const metawoodNFT = await this.marketPlaceContractInstance.metawoodNFT();
+    const isPaused = await this.marketPlaceContractInstance.paused();
+    expect(metawoodNFT).to.equal(this.metawoodNFTContractInstance.address);
+    expect(isPaused).to.equal(false);
+  });
+
+  it("should be able to list minted token!", async function () {
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user1).createListing(10, 1)
+    ).to.be.revertedWith("MetawoodMarketplaceV1: tokenId is not minted");
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user1).createListing(1, 0)
+    ).to.be.revertedWith("MetawoodMarketplaceV1: Token Not Owned!");
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user1).createListing(0, 0)
+    ).to.be.revertedWith("MetawoodMarketplaceV1: Price must be at least 1 wei");
+
+    //No listing has been created for this tokenId before
+    await this.marketPlaceContractInstance.connect(this.user1).createListing(0, parseEther("0.2"));
+
+    const listingCount = await this.marketPlaceContractInstance.getListingCount();
+    const userstokenBalance = await this.metawoodNFTContractInstance.balanceOf(
+      this.user1.address,
+      0
+    );
+    const listing = await this.marketPlaceContractInstance.getListing(0);
+    expect(listing.seller).to.equal(this.user1.address);
+    expect(listing.tokenPrice).to.equal(parseEther("0.2"));
+    expect(listing.tokenId).to.equal(0);
+    expect(listing.listingId).to.equal(0);
+    expect(listing.status).to.equal(0);
+    expect(listingCount).to.equal(1);
+    expect(userstokenBalance).to.equal(1);
+  });
+
+  it("should not be able to create listing for same minted token even existing listng is open", async function () {
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user1).createListing(0, parseEther("0.2"))
+    ).to.be.revertedWith("MetawoodMarketplaceV1: Listing already exists for this token");
+
+    await this.metawoodNFTContractInstance
+      .connect(this.user1)
+      .safeTransferFrom(this.user1.address, this.user2.address, 0, 1, "0x00");
+
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user1).createListing(0, parseEther("0.2"))
+    ).to.be.revertedWith("MetawoodMarketplaceV1: Token Not Owned");
+
+    await this.marketPlaceContractInstance.connect(this.user2).createListing(0, parseEther("0.3"));
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user1).changeListingPrice(0, parseEther("0.3"))
+    ).to.be.revertedWith("MetawoodMarketplaceV1: Token Not Owned");
+
+    const newListing = await this.marketPlaceContractInstance.getListing(1);
+    const listingCount = await this.marketPlaceContractInstance.getListingCount();
+    const userstokenBalance = await this.metawoodNFTContractInstance.balanceOf(
+      this.user2.address,
+      0
+    );
+    expect(newListing.seller).to.equal(this.user2.address);
+    expect(newListing.tokenPrice).to.equal(parseEther("0.3"));
+    expect(newListing.tokenId).to.equal(0);
+    expect(newListing.listingId).to.equal(1);
+    expect(newListing.status).to.equal(0);
+    expect(listingCount).to.equal(2);
+    expect(userstokenBalance).to.equal(1);
   });
 });

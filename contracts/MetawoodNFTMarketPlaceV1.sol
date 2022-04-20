@@ -54,22 +54,22 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
     );
 
     modifier ensureNonZeroAddress(address addressToCheck) {
-        require(addressToCheck != address(0), "Metawood Marketplace: No zero address");
+        require(addressToCheck != address(0), "MetawoodMarketplaceV1: No zero address");
         _;
     }
 
     modifier ensureValidListing(uint256 listingId) {
         Listing memory listing = _listings[listingId];
-        require(listing.seller != address(0), "Metawood Marketplace: Invalid Listing");
-        require(msg.sender != address(0));
+        require(listing.seller != address(0), "MetawoodMarketplaceV1: Invalid Listing");
+        require(msg.sender != address(0), "MetawoodMarketplaceV1: Invalid caller address");
         _;
     }
 
     modifier ensureNFTOwner(uint256 _tokenId) {
-        require(metawoodNFT.exists(_tokenId), "Metawood Marketplace: tokenId is not minted");
+        require(metawoodNFT.exists(_tokenId), "MetawoodMarketplaceV1: tokenId is not minted");
         require(
             metawoodNFT.balanceOf(msg.sender, _tokenId) > 0,
-            "Metawood Marketplace: Token Not Owned!"
+            "MetawoodMarketplaceV1: Token Not Owned!"
         );
         _;
     }
@@ -79,14 +79,18 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
         metawoodNFT = _metawoodNFT;
     }
 
+    function getListingCount() external view returns (uint256) {
+        return _listingCounter.current();
+    }
+
     function createListing(uint256 _tokenId, uint256 _tokenPrice)
         external
         nonReentrant
         ensureNFTOwner(_tokenId)
         whenNotPaused
     {
-        require(msg.sender != address(0));
-        require(_tokenPrice > 0, "Metawood Marketplace: Price must be at least 1 wei");
+        require(msg.sender != address(0), "MetawoodMarketplaceV1: Invalid caller address");
+        require(_tokenPrice > 0, "MetawoodMarketplaceV1: Price must be at least 1 wei");
 
         Listing memory latestListingForTokenId = _listings[_tokenIdToListingId[_tokenId]];
         if (
@@ -94,7 +98,7 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
             latestListingForTokenId.status == ListingState.OPEN &&
             latestListingForTokenId.tokenId == _tokenId
         ) {
-            revert("Metawood Marketplace: Listing already exists for this token");
+            revert("MetawoodMarketplaceV1: Listing already exists for this token");
         }
 
         uint256 listingId = _listingCounter.current();
@@ -116,11 +120,11 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
         Listing storage listing = _listings[_listingId];
         require(
             listing.seller == msg.sender,
-            "Metawood Marketplace: Not the seller of the listing!"
+            "MetawoodMarketplaceV1: Not the seller of the listing!"
         );
         require(
             listing.status == ListingState.OPEN,
-            "Metawood Marketplace: Listing is already closed!!"
+            "MetawoodMarketplaceV1: Listing is already closed!!"
         );
 
         listing.status = ListingState.CLOSED;
@@ -137,17 +141,17 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
         Listing storage listing = _listings[_listingId];
         require(
             listing.seller == msg.sender,
-            "Metawood Marketplace: Not the seller of the listing!"
+            "MetawoodMarketplaceV1: Not the seller of the listing!"
         );
         require(
             listing.status == ListingState.OPEN,
-            "Metawood Marketplace: Listing is already closed!!"
+            "MetawoodMarketplaceV1: Listing is already closed!!"
         );
         require(
             metawoodNFT.balanceOf(msg.sender, listing.tokenId) > 0,
-            "Metawood Marketplace: Token Not Owned!"
+            "MetawoodMarketplaceV1: Token Not Owned!"
         );
-        require(_newTokenPrice > 0, "Metawood Marketplace: New Price must be at least 1 wei");
+        require(_newTokenPrice > 0, "MetawoodMarketplaceV1: New Price must be at least 1 wei");
 
         listing.tokenPrice = _newTokenPrice;
 
@@ -165,20 +169,20 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
     {
         Listing storage listing = _listings[_listingId];
 
-        require(msg.sender != address(0));
+        require(msg.sender != address(0), "MetawoodMarketplaceV1: Invalid caller address");
         require(
             listing.status == ListingState.OPEN,
-            "Metawood Marketplace: The item is not for sale!!"
+            "MetawoodMarketplaceV1: The item is not for sale!!"
         );
-        require(listing.seller != msg.sender, "Metawood Marketplace: Cannot Buy Owned Item!");
-        require(msg.value == listing.tokenPrice, "Metawood Marketplace: Not enough funds sent");
+        require(listing.seller != msg.sender, "MetawoodMarketplaceV1: Cannot Buy Owned Item!");
+        require(msg.value == listing.tokenPrice, "MetawoodMarketplaceV1: Not enough funds sent");
         require(
             metawoodNFT.isApprovedForAll(listing.seller, address(this)),
-            "Metawood Marketplace: Not Approved for moving the listing token!"
+            "MetawoodMarketplaceV1: Not Approved for moving the listing token!"
         );
         require(
             metawoodNFT.balanceOf(listing.seller, listing.tokenId) > 0,
-            "Metawood Marketplace: Invalid Listing. Token Not Owned by seller!"
+            "MetawoodMarketplaceV1: Invalid Listing. Token Not Owned by seller!"
         );
 
         TransferHelper.safeTransferETH(listing.seller, listing.tokenPrice);
@@ -187,7 +191,7 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
 
         require(
             metawoodNFT.balanceOf(msg.sender, listing.tokenId) > 0,
-            "Metawood Marketplace: Token Not Sold!"
+            "MetawoodMarketplaceV1: Token Not Sold!"
         );
 
         emit NFTPurchased(
@@ -229,6 +233,7 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
         view
         returns (Listing memory listing)
     {
+        require(metawoodNFT.exists(_tokenId), "MetawoodMarketplaceV1: tokenId is not minted");
         listing = _listings[_tokenIdToListingId[_tokenId]];
     }
 
@@ -237,7 +242,7 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
         uint256 count = _listingCounter.current();
         uint256 found = 0;
         for (; found < threshold && count > 0; count--) {
-            if (_listings[count].status == ListingState.OPEN) {
+            if (_listings[count - 1].status == ListingState.OPEN) {
                 listings[found] = _listings[count - 1];
                 found++;
             }
