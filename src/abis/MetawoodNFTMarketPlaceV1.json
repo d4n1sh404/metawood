@@ -1,6 +1,6 @@
 {
   "name": "MetawoodNFTMarketPlaceV1",
-  "network": "mumbai",
+  "network": "matic",
   "address": "0xdF5bFBEfDDD0Cd6cc61Cf985c7Cefaef462dB193",
   "abi": [
     {
@@ -381,6 +381,19 @@
           "internalType": "struct MetawoodNFTMarketPlaceV1.Listing",
           "name": "listing",
           "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getListingCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",

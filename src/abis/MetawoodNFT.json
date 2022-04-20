@@ -1,6 +1,6 @@
 {
   "name": "MetawoodNFT",
-  "network": "mumbai",
+  "network": "matic",
   "address": "0x018D0ED237eDB4F43B348C38b140CF5ECc14a500",
   "abi": [
     {
