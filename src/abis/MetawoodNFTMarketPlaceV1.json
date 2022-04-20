@@ -1,7 +1,7 @@
 {
   "name": "MetawoodNFTMarketPlaceV1",
   "network": "mumbai",
-  "address": "0x5F8502D34e2FcbC63631989c6f0bFb3A2025D030",
+  "address": "0xdF5bFBEfDDD0Cd6cc61Cf985c7Cefaef462dB193",
   "abi": [
     {
       "inputs": [
@@ -18,7 +18,7 @@
       "anonymous": false,
       "inputs": [
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "uint256",
           "name": "listingId",
           "type": "uint256"
@@ -30,12 +30,6 @@
     {
       "anonymous": false,
       "inputs": [
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "listingId",
-          "type": "uint256"
-        },
         {
           "indexed": true,
           "internalType": "uint256",
@@ -249,6 +243,52 @@
           "internalType": "struct MetawoodNFTMarketPlaceV1.Listing[]",
           "name": "",
           "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_tokenId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getLatestListingForToken",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "listingId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "seller",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenPrice",
+              "type": "uint256"
+            },
+            {
+              "internalType": "enum MetawoodNFTMarketPlaceV1.ListingState",
+              "name": "status",
+              "type": "uint8"
+            }
+          ],
+          "internalType": "struct MetawoodNFTMarketPlaceV1.Listing",
+          "name": "listing",
+          "type": "tuple"
         }
       ],
       "stateMutability": "view",
