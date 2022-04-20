@@ -34,7 +34,7 @@ contract MetawoodNFT is
     event MetawoodNFTMinted(uint256 tokenId, string tokenURI, address creator);
 
     modifier ensureNonZeroAddress(address addressToCheck) {
-        require(addressToCheck != address(0), "Metawood NFT: No zero address");
+        require(addressToCheck != address(0), "MetawoodNFT: No zero address");
         _;
     }
 
@@ -63,8 +63,8 @@ contract MetawoodNFT is
         return _uris[_tokenId];
     }
 
-    //use properly since there are no requires here
     function setTokenURI(uint256 _tokenId, string memory _tokenURI) external onlyOwner {
+        require(exists(_tokenId), "MetawoodNFT: tokenId is not minted");
         _uris[_tokenId] = _tokenURI;
         emit SetTokenURI(_tokenId, _tokenURI);
     }
@@ -113,8 +113,6 @@ contract MetawoodNFT is
         }
         _mintBatch(_account, _ids, _amounts, _data);
     }
-
-    //opensea suported methods
 
     /**
      * Override isApprovedForAll to auto-approve OS's proxy contract
