@@ -175,6 +175,7 @@ contract MetawoodNFTMarketPlaceV1 is Ownable, ReentrancyGuard, Pausable {
             "MetawoodMarketplaceV1: The item is not for sale!!"
         );
         require(listing.seller != msg.sender, "MetawoodMarketplaceV1: Cannot Buy Owned Item!");
+        //update error message here in new deployment
         require(msg.value == listing.tokenPrice, "MetawoodMarketplaceV1: Not enough funds sent");
         require(
             metawoodNFT.isApprovedForAll(listing.seller, address(this)),

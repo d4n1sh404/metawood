@@ -318,5 +318,155 @@ describe.only("Metawood marketplace Core test cases", function () {
     expect(newListing.status).to.equal(0);
     expect(listingCount).to.equal(2);
     expect(userstokenBalance).to.equal(1);
+
+    await this.metawoodNFTContractInstance
+      .connect(this.user2)
+      .safeTransferFrom(this.user2.address, this.user1.address, 0, 1, "0x00");
+    await this.marketPlaceContractInstance.connect(this.user1).createListing(0, parseEther("0.5"));
+  });
+
+  it("should be able to close listing even if token is not owned", async function () {
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user2).closeListing(0)
+    ).to.be.revertedWith("MetawoodMarketplaceV1: Not the seller of the listing!");
+    await this.marketPlaceContractInstance.connect(this.user1).closeListing(0);
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user1).closeListing(0)
+    ).to.be.revertedWith("MetawoodMarketplaceV1: Listing is already closed!!");
+    await this.marketPlaceContractInstance.connect(this.user1).closeListing(2);
+    await this.marketPlaceContractInstance.connect(this.user1).createListing(0, parseEther("0.5"));
+  });
+
+  it("should be able to change listing price", async function () {
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user1).changeListingPrice(1, parseEther("0.5"))
+    ).to.be.revertedWith("MetawoodMarketplaceV1: Not the seller of the listing!");
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user2).changeListingPrice(1, parseEther("0.5"))
+    ).to.be.revertedWith("MetawoodMarketplaceV1: Token Not Owned!");
+    await this.marketPlaceContractInstance.connect(this.user2).closeListing(1);
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user2).changeListingPrice(1, parseEther("0.5"))
+    ).to.be.revertedWith("MetawoodMarketplaceV1: Listing is already closed!!");
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user1).changeListingPrice(2, parseEther("0.5"))
+    ).to.be.revertedWith("MetawoodMarketplaceV1: Listing is already closed!!");
+    await this.marketPlaceContractInstance
+      .connect(this.user1)
+      .changeListingPrice(3, parseEther("0.75"));
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user1).changeListingPrice(3, parseEther("0"))
+    ).to.be.revertedWith("MetawoodMarketplaceV1: New Price must be at least 1 wei");
+
+    //Preparations
+    await this.marketPlaceContractInstance.connect(this.user2).createListing(1, parseEther("0.15"));
+    await this.marketPlaceContractInstance.connect(this.user2).createListing(2, parseEther("0.35"));
+
+    //check getters here
+    const listingById = await this.marketPlaceContractInstance.getListing(1);
+    expect(listingById.seller).to.equal(this.user2.address);
+    expect(listingById.tokenPrice).to.equal(parseEther("0.3"));
+    expect(listingById.tokenId).to.equal(0);
+    expect(listingById.listingId).to.equal(1);
+    expect(listingById.status).to.equal(1);
+
+    const latestListingForToken = await this.marketPlaceContractInstance.getLatestListingForToken(
+      0
+    );
+    expect(latestListingForToken.seller).to.equal(this.user1.address);
+    expect(latestListingForToken.tokenPrice).to.equal(parseEther("0.75"));
+    expect(latestListingForToken.tokenId).to.equal(0);
+    expect(latestListingForToken.listingId).to.equal(3);
+    expect(latestListingForToken.status).to.equal(0);
+
+    const getLatestListings = await this.marketPlaceContractInstance.getLatestListings(3);
+    expect(getLatestListings.length).to.be.equal(3);
+
+    const getOpenListingsForUser = await this.marketPlaceContractInstance.getOpenListings(
+      this.user2.address
+    );
+    expect(getOpenListingsForUser.length).to.be.equal(2);
+
+    const getAllOpenListings = await this.marketPlaceContractInstance.getAllOpenListings();
+    expect(getAllOpenListings.length).to.be.equal(3);
+
+    const getOwnedTokens = await this.marketPlaceContractInstance.getOwnedTokens(
+      this.user2.address
+    );
+    expect(getOwnedTokens.length).to.be.equal(2);
+  });
+
+  it("should be able purchase NFT in a valid way", async function () {
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user2).purchaseNFT(7)
+    ).to.be.revertedWith("MetawoodMarketplaceV1: Invalid Listing");
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user2).purchaseNFT(0)
+    ).to.be.revertedWith("MetawoodMarketplaceV1: The item is not for sale!!");
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user1).purchaseNFT(3)
+    ).to.be.revertedWith("MetawoodMarketplaceV1: Cannot Buy Owned Item!");
+    await expect(
+      this.marketPlaceContractInstance.connect(this.user2).purchaseNFT(3)
+    ).to.be.revertedWith("MetawoodMarketplaceV1: Not enough funds sent");
+    let user1BalanceBefore = await ethers.provider.getBalance(this.user1.address);
+    let user2BalanceBefore = await ethers.provider.getBalance(this.user2.address);
+    console.log("Before purchase balance", user1BalanceBefore, user2BalanceBefore);
+
+    await this.marketPlaceContractInstance
+      .connect(this.user2)
+      .purchaseNFT(3, { value: parseEther("0.75") });
+
+    await expect(
+      this.marketPlaceContractInstance
+        .connect(this.user2)
+        .purchaseNFT(3, { value: parseEther("0.75") })
+    ).to.be.revertedWith("MetawoodMarketplaceV1: The item is not for sale!!");
+
+    let user1BalanceAfter = await ethers.provider.getBalance(this.user1.address);
+    let user2BalanceAfter = await ethers.provider.getBalance(this.user2.address);
+    console.log("After purchase balance", user1BalanceAfter, user2BalanceAfter);
+
+    await this.marketPlaceContractInstance
+      .connect(this.user1)
+      .purchaseNFT(4, { value: parseEther("0.15") });
+
+    await this.marketPlaceContractInstance
+      .connect(this.user1)
+      .purchaseNFT(5, { value: parseEther("0.35") });
+
+    await this.marketPlaceContractInstance.connect(this.user1).createListing(1, parseEther("0.5"));
+    await this.marketPlaceContractInstance.connect(this.user1).createListing(2, parseEther("0.5"));
+    await this.marketPlaceContractInstance.connect(this.user2).createListing(0, parseEther("0.5"));
+
+    user1BalanceBefore = await ethers.provider.getBalance(this.user1.address);
+    user2BalanceBefore = await ethers.provider.getBalance(this.user2.address);
+    console.log("Before purchase balance", user1BalanceBefore, user2BalanceBefore);
+
+    await this.marketPlaceContractInstance
+      .connect(this.user2)
+      .purchaseNFT(6, { value: parseEther("0.5") });
+
+    await this.marketPlaceContractInstance
+      .connect(this.user2)
+      .purchaseNFT(7, { value: parseEther("0.5") });
+
+    await this.marketPlaceContractInstance
+      .connect(this.user1)
+      .purchaseNFT(8, { value: parseEther("0.5") });
+
+    user1BalanceAfter = await ethers.provider.getBalance(this.user1.address);
+    user2BalanceAfter = await ethers.provider.getBalance(this.user2.address);
+    console.log("After purchase balance", user1BalanceAfter, user2BalanceAfter);
+
+    const getOwnedTokensUser1 = await this.marketPlaceContractInstance.getOwnedTokens(
+      this.user1.address
+    );
+    expect(getOwnedTokensUser1.length).to.be.equal(1);
+
+    const getOwnedTokensUser2 = await this.marketPlaceContractInstance.getOwnedTokens(
+      this.user2.address
+    );
+    expect(getOwnedTokensUser2.length).to.be.equal(2);
   });
 });
