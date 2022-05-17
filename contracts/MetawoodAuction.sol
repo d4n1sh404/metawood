@@ -105,7 +105,7 @@ contract MetawoodAuction {
         Auction storage _auction = _auctions[_auctionId];
 
         require(
-            msg.value < _auction.highestBid + bidIncreaseThreshold,
+            msg.value >= _auction.highestBid + bidIncreaseThreshold,
             "Bid amount less than max bid"
         );
 
