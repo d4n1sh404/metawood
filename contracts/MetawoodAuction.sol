@@ -4,8 +4,9 @@ pragma solidity ^0.8.4;
 import "./interfaces/IMetawoodNFT.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
-contract MetawoodAuction {
+contract MetawoodAuction is ERC1155Holder {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
 
@@ -18,7 +19,7 @@ contract MetawoodAuction {
     }
 
     enum AuctionState {
-        INACTIVE,
+        CLOSED,
         ACTIVE
     }
 
@@ -160,6 +161,31 @@ contract MetawoodAuction {
             );
         }
 
-        _auction.status = AuctionState.INACTIVE;
+        _auction.status = AuctionState.CLOSED;
+    }
+
+    function terminateAuction(uint256 _auctionId)
+        external
+        ensureValidAuction(_auctionId)
+        ensureAuctionCreator(_auctionId)
+        ensureActiveAuction(_auctionId)
+    {
+        Auction storage _auction = _auctions[_auctionId];
+
+        //return the highest bid
+        bool success = _auction.highestBidder.send(_auction.highestBid);
+        require(success, "Highest bid payback failed");
+
+        //return the nft
+        _auction.nftContract.safeTransferFrom(
+            address(this),
+            _auction.creator,
+            _auction.nftId,
+            1,
+            "0x00"
+        );
+
+        //close the auction state
+        _auction.status = AuctionState.CLOSED;
     }
 }
