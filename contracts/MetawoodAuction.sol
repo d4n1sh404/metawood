@@ -11,6 +11,7 @@ contract MetawoodAuction {
 
     Counters.Counter private _auctionCounter;
     IMetawoodNFT public metawoodNFT;
+    uint256 public bidIncreaseThreshold = 10**15;
 
     constructor(address _nftContract) {
         metawoodNFT = IMetawoodNFT(_nftContract);
@@ -26,12 +27,14 @@ contract MetawoodAuction {
         IMetawoodNFT nftContract;
         uint256 nftId; // NFT Id
         address payable creator; // Creator of the Auction
+        uint256 bidIncreaseThreshold;
         uint256 auctionEnd;
         uint256 minimumBid;
         uint256 highestBid;
-        address highestBidder;
+        address payable highestBidder;
         uint256[] bids;
-        address payable[] bidders;
+        address[] bidders;
+        // address payable[] bidders;
         AuctionState status;
     }
 
@@ -47,6 +50,13 @@ contract MetawoodAuction {
         Auction memory auction = _auctions[_auctionId];
         require(auction.creator != address(0), "Invalid Auction");
         require(msg.sender != address(0), "Invalid caller address");
+        _;
+    }
+
+    modifier ensureActiveAuction(uint256 _auctionId) {
+        Auction memory auction = _auctions[_auctionId];
+        require(auction.status == AuctionState.ACTIVE, "Auction not active");
+
         _;
     }
 
@@ -71,12 +81,13 @@ contract MetawoodAuction {
             nftContract: metawoodNFT,
             nftId: _nftId,
             creator: payable(msg.sender),
+            bidIncreaseThreshold: bidIncreaseThreshold,
             auctionEnd: _auctionEnd,
             minimumBid: _minimumBid,
             highestBid: 0,
-            highestBidder: address(0),
+            highestBidder: payable(address(0)),
             bids: new uint256[](0),
-            bidders: new address payable[](0),
+            bidders: new address[](0),
             status: AuctionState.ACTIVE
         });
 
@@ -85,14 +96,37 @@ contract MetawoodAuction {
         _auctionCounter.increment();
     }
 
+    function makeBid(uint256 _auctionId)
+        external
+        payable
+        ensureValidAuction(_auctionId)
+        ensureActiveAuction(_auctionId)
+    {
+        Auction storage _auction = _auctions[_auctionId];
+
+        require(
+            msg.value < _auction.highestBid + bidIncreaseThreshold,
+            "Bid amount less than max bid"
+        );
+
+        //return amount to old bidder
+        bool success = _auction.highestBidder.send(_auction.highestBid);
+        require(success, "Old highest bid payback failed");
+        //update max bidder
+        _auction.highestBid = msg.value;
+        _auction.highestBidder = payable(msg.sender);
+        _auction.bids.push(msg.value);
+        _auction.bidders.push(msg.sender);
+    }
+
     function settleAuction(uint256 _auctionId)
         external
         ensureValidAuction(_auctionId)
         ensureAuctionCreator(_auctionId)
+        ensureActiveAuction(_auctionId)
     {
         Auction storage _auction = _auctions[_auctionId];
-        require(_auction.auctionEnd <= block.timestamp, "Deadline did not pass yet");
-        require(_auction.status == AuctionState.ACTIVE, "Auction not active");
+        // require(_auction.auctionEnd <= block.timestamp, "Deadline did not pass yet");
 
         if (_auction.bids.length == 0) {
             // There are no bids, return the nft to creator
@@ -107,14 +141,14 @@ contract MetawoodAuction {
             // send
             bool success = _auction.creator.send(_auction.highestBid);
 
-            require(success, "Sending money failed");
+            require(success, "Paying highest bidder failed");
 
-            for (uint256 i = 0; i < _auction.bids.length; i++) {
-                if (_auction.bidders[i] != _auction.highestBidder) {
-                    (success) = _auction.bidders[i].send(_auction.bids[i]);
-                    require(success);
-                }
-            }
+            // for (uint256 i = 0; i < _auction.bids.length; i++) {
+            //     if (_auction.bidders[i] != _auction.highestBidder) {
+            //         (success) = _auction.bidders[i].send(_auction.bids[i]);
+            //         require(success);
+            //     }
+            // }
 
             //Send the nft to highest bidder
             _auction.nftContract.safeTransferFrom(
