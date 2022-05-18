@@ -74,7 +74,7 @@ describe.only("Metawood Auction", () => {
     expect(escrowCheck).to.be.equal(1);
   });
 
-  it("Should get latest auctions!", async function () {
+  it("Should get all auctions!", async function () {
     let tx = await nftAuction.getAllAuctions();
     expect(tx.length).to.be.equal(1);
   });
@@ -144,10 +144,11 @@ describe.only("Metawood Auction", () => {
     expect(nftTransfer).to.equal(1);
   });
 
-  /*
+  it("Should check total auctions!", async function () {
+    let allAuctions = await nftAuction.getAllAuctions();
+    expect(allAuctions.length).to.be.equal(2);
 
-  it("User should be able to close  his listing!", async function () {
-    let tx = await marketPlace.connect(userTwo).closeListing(1);
+    let activeAuctions = await nftAuction.getAllActiveAuctions();
+    expect(activeAuctions.length).to.be.equal(0);
   });
-  */
 });
