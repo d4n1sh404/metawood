@@ -5,13 +5,15 @@ import "./interfaces/IMetawoodNFT.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MetawoodAuction is ERC1155Holder {
+contract MetawoodAuction is ERC1155Holder, Ownable {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
 
     Counters.Counter private _auctionCounter;
     IMetawoodNFT public metawoodNFT;
+
     uint256 public bidIncreaseThreshold = 10**15;
 
     constructor(address _nftContract) {
@@ -41,6 +43,11 @@ contract MetawoodAuction is ERC1155Holder {
 
     mapping(uint256 => Auction) private _auctions;
 
+    modifier ensureNonZeroAddress(address addressToCheck) {
+        require(addressToCheck != address(0), "Zero address!");
+        _;
+    }
+
     modifier ensureNFTOwner(uint256 _tokenId) {
         require(metawoodNFT.exists(_tokenId), "Non existing token");
         require(metawoodNFT.balanceOf(msg.sender, _tokenId) > 0, "Token Not Owned!");
@@ -57,7 +64,6 @@ contract MetawoodAuction is ERC1155Holder {
     modifier ensureActiveAuction(uint256 _auctionId) {
         Auction memory auction = _auctions[_auctionId];
         require(auction.status == AuctionState.ACTIVE, "Auction not active");
-
         _;
     }
 
@@ -66,6 +72,8 @@ contract MetawoodAuction is ERC1155Holder {
         require(auction.creator == msg.sender, "Not the auction creator");
         _;
     }
+
+    // Transactions
 
     function createAuction(
         uint256 _nftId,
@@ -104,10 +112,12 @@ contract MetawoodAuction is ERC1155Holder {
         ensureActiveAuction(_auctionId)
     {
         Auction storage _auction = _auctions[_auctionId];
-
+        require(msg.sender != _auction.creator, "Cannont bid on own auction!");
+        require(block.timestamp <= _auction.auctionEnd, "Auction Deadline passed!");
         require(
-            msg.value >= _auction.highestBid + bidIncreaseThreshold,
-            "Bid amount less than max bid"
+            msg.value >= _auction.minimumBid &&
+                msg.value >= _auction.highestBid + bidIncreaseThreshold,
+            "Bid amount less than max bid threshold"
         );
 
         //return amount to old bidder
@@ -187,5 +197,58 @@ contract MetawoodAuction is ERC1155Holder {
 
         //close the auction state
         _auction.status = AuctionState.CLOSED;
+    }
+
+    function setMetawoodNFT(address _newMetawoodNFT)
+        external
+        ensureNonZeroAddress(_newMetawoodNFT)
+        onlyOwner
+    {
+        metawoodNFT = IMetawoodNFT(_newMetawoodNFT);
+    }
+
+    function updateBiddingThreshold(uint256 _newBiddingThreshold) public onlyOwner {
+        bidIncreaseThreshold = _newBiddingThreshold;
+    }
+
+    //Getters
+
+    function getAuctionById(uint256 _auctionId) external view returns (Auction memory) {
+        return _auctions[_auctionId];
+    }
+
+    function getHighestBid(uint256 _auctionId) external view returns (uint256, address) {
+        Auction memory _auction = _auctions[_auctionId];
+        return (_auction.highestBid, _auction.highestBidder);
+    }
+
+    function getAllAuctions() external view returns (Auction[] memory) {
+        Auction[] memory auctions = new Auction[](_auctionCounter.current());
+        for (uint256 i = 0; i < _auctionCounter.current(); i++) {
+            auctions[i] = _auctions[i];
+        }
+
+        return auctions;
+    }
+
+    function getAllActiveAuctions() external view returns (Auction[] memory) {
+        uint256 _activeCount = 0;
+
+        for (uint256 i = 0; i < _auctionCounter.current(); i++) {
+            if (_auctions[i].status == AuctionState.ACTIVE) {
+                _activeCount++;
+            }
+        }
+
+        Auction[] memory auctions = new Auction[](_activeCount);
+
+        for (uint256 i = 0; i < _auctionCounter.current(); i++) {
+            if (_auctions[i].status == AuctionState.ACTIVE) {
+                auctions[_activeCount - 1] = _auctions[i];
+                _activeCount--;
+            }
+        }
+
+        return auctions;
     }
 }
