@@ -81,7 +81,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable {
         uint256 _auctionEnd
     ) external ensureNFTOwner(_nftId) {
         require(msg.sender != address(0), "Invalid caller address");
-        require(_auctionEnd > 0, "Invalid auctionEnd value");
+        require(_auctionEnd > 0 && _auctionEnd > block.timestamp, "Invalid auctionEnd time");
 
         uint256 auctionId = _auctionCounter.current();
 
@@ -183,9 +183,10 @@ contract MetawoodAuction is ERC1155Holder, Ownable {
         Auction storage _auction = _auctions[_auctionId];
 
         //return the highest bid
-        bool success = _auction.highestBidder.send(_auction.highestBid);
-        require(success, "Highest bid payback failed");
-
+        if (_auction.bids.length > 0) {
+            bool success = _auction.highestBidder.send(_auction.highestBid);
+            require(success, "Highest bid payback failed");
+        }
         //return the nft
         _auction.nftContract.safeTransferFrom(
             address(this),
