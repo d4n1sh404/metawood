@@ -28,7 +28,7 @@ describe.only("Metawood Auction", () => {
     await nftAuction.deployed();
   });
 
-  it("Should register nftToken Contract on Auctoion Platform!", async function () {
+  it("Should register nftToken Contract on Auction Platform!", async function () {
     let setTx = await nftAuction.setMetawoodNFT(nftContract.address);
     let getTx = await nftAuction.metawoodNFT();
     expect(getTx).to.equal(nftContract.address);
@@ -57,7 +57,7 @@ describe.only("Metawood Auction", () => {
     let approveTx = await nftContract.connect(user).setApprovalForAll(nftAuction.address, true);
     let tx = await nftAuction
       .connect(user)
-      .createAuction(0, ethers.utils.parseEther("100"), new Date() * 1000 + 60);
+      .createAuction(0, ethers.utils.parseEther("100"), (new Date() / 1000 + 10 * 60) | 0);
   });
 
   it("Auction should have been created!", async function () {
@@ -109,6 +109,39 @@ describe.only("Metawood Auction", () => {
   it("Should escrow the highest bid only!", async function () {
     let escrowCheck = await ethers.provider.getBalance(nftAuction.address);
     expect(escrowCheck).to.be.equal(ethers.utils.parseEther("150"));
+  });
+
+  it("Should settle the auction!", async function () {
+    let settleTx = await nftAuction.connect(user).settleAuction(0);
+    let userBalance = await ethers.provider.getBalance(user.address);
+    let nftTransfer = await nftContract.balanceOf(userThree.address, 0);
+    expect(nftTransfer).to.equal(1);
+  });
+
+  it("User should be able to auction owned token!", async function () {
+    let approveTx = await nftContract
+      .connect(userThree)
+      .setApprovalForAll(nftAuction.address, true);
+    let tx = await nftAuction
+      .connect(userThree)
+      .createAuction(0, ethers.utils.parseEther("100"), (new Date() / 1000 + 2 * 60) | 0);
+  });
+
+  it("Auction should have been created!", async function () {
+    let tx = await nftAuction.getAuctionById(1);
+    expect(tx.id).to.be.equal(1); //auctionId
+    expect(tx.creator).to.be.equal(userThree.address); //creatorAddress
+    expect(tx.nftId).to.be.equal(0); //tokenId
+    let nftTransfer = await nftContract.balanceOf(userThree.address, 0);
+    expect(nftTransfer).to.equal(0);
+  });
+
+  it("Auction should be terminated!", async function () {
+    let terminateAuction = await nftAuction.connect(userThree).terminateAuction(1);
+    let tx = await nftAuction.getAuctionById(1);
+    expect(tx.status).to.equal(0);
+    let nftTransfer = await nftContract.balanceOf(userThree.address, 0);
+    expect(nftTransfer).to.equal(1);
   });
 
   /*
