@@ -6,8 +6,9 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract MetawoodAuction is ERC1155Holder, Ownable {
+contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
 
@@ -79,7 +80,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable {
         uint256 _nftId,
         uint256 _minimumBid,
         uint256 _auctionEnd
-    ) external ensureNFTOwner(_nftId) {
+    ) external nonReentrant ensureNFTOwner(_nftId) {
         require(msg.sender != address(0), "Invalid caller address");
         require(_auctionEnd > 0 && _auctionEnd > block.timestamp, "Invalid auctionEnd time");
 
@@ -108,6 +109,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable {
     function makeBid(uint256 _auctionId)
         external
         payable
+        nonReentrant
         ensureValidAuction(_auctionId)
         ensureActiveAuction(_auctionId)
     {
@@ -132,6 +134,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable {
 
     function settleAuction(uint256 _auctionId)
         external
+        nonReentrant
         ensureValidAuction(_auctionId)
         ensureAuctionCreator(_auctionId)
         ensureActiveAuction(_auctionId)
@@ -176,6 +179,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable {
 
     function terminateAuction(uint256 _auctionId)
         external
+        nonReentrant
         ensureValidAuction(_auctionId)
         ensureAuctionCreator(_auctionId)
         ensureActiveAuction(_auctionId)
