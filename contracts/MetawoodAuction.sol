@@ -26,6 +26,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         ACTIVE
     }
 
+    //single struct for handling bid, tbd?
     struct Auction {
         uint256 id;
         IMetawoodNFT nftContract;
@@ -43,6 +44,20 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
     }
 
     mapping(uint256 => Auction) private _auctions;
+
+    event AuctionCreated(
+        uint256 indexed auctionId,
+        address nftContract,
+        uint256 indexed nftId,
+        address indexed creator,
+        uint256 bidIncreaseThreshold,
+        uint256 auctionEnd,
+        uint256 minimumBid
+    );
+
+    event BidReceived(uint256 indexed auctionId, uint256 bidAmount, address indexed bidder);
+    event AuctionSettled(uint256 indexed auctionId);
+    event AuctionClosed(uint256 indexed auctionId);
 
     modifier ensureNonZeroAddress(address addressToCheck) {
         require(addressToCheck != address(0), "Zero address!");
@@ -107,6 +122,16 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
 
         _auctions[auctionId] = _auction;
         _auctionCounter.increment();
+
+        emit AuctionCreated(
+            auctionId,
+            address(metawoodNFT),
+            _nftId,
+            msg.sender,
+            bidIncreaseThreshold,
+            _auctionEnd,
+            _minimumBid
+        );
     }
 
     function makeBid(uint256 _auctionId)
@@ -133,6 +158,8 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         _auction.highestBidder = payable(msg.sender);
         _auction.bids.push(msg.value);
         _auction.bidders.push(msg.sender);
+
+        emit BidReceived(_auctionId, msg.value, msg.sender);
     }
 
     function settleAuction(uint256 _auctionId)
@@ -188,6 +215,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         }
 
         _auction.status = AuctionState.CLOSED;
+        emit AuctionSettled(_auctionId);
     }
 
     function closeAuction(uint256 _auctionId)
@@ -220,6 +248,8 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
 
         //close the auction state
         _auction.status = AuctionState.CLOSED;
+
+        emit AuctionClosed(_auctionId);
     }
 
     function setMetawoodNFT(address _newMetawoodNFT)
