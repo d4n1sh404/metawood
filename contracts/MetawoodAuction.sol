@@ -102,6 +102,9 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         });
 
         metawoodNFT.safeTransferFrom(msg.sender, address(this), _nftId, 1, "0x00");
+
+        require(metawoodNFT.balanceOf(address(this), _nftId) == 1, "Nft not escrowed!");
+
         _auctions[auctionId] = _auction;
         _auctionCounter.increment();
     }
@@ -151,6 +154,11 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
                 1,
                 "0x00"
             );
+
+            require(
+                _auction.nftContract.balanceOf(_auction.creator, _auction.nftId) == 1,
+                "Transfer NFT to creator failed!"
+            );
         } else {
             // send
             bool success = _auction.creator.send(_auction.highestBid);
@@ -171,6 +179,11 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
                 _auction.nftId,
                 1,
                 "0x00"
+            );
+
+            require(
+                _auction.nftContract.balanceOf(_auction.highestBidder, _auction.nftId) == 1,
+                "Transfer NFT to highest bidder failed!"
             );
         }
 
@@ -198,6 +211,11 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
             _auction.nftId,
             1,
             "0x00"
+        );
+
+        require(
+            _auction.nftContract.balanceOf(_auction.creator, _auction.nftId) == 1,
+            "Transfer NFT to creator failed!"
         );
 
         //close the auction state
