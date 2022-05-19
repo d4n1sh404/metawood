@@ -1,7 +1,7 @@
 {
   "name": "MetawoodAuction",
-  "network": "localhost",
-  "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "network": "mumbai",
+  "address": "0xcaF0bBEeB75846Ec127232E13199614DA1B9B94d",
   "abi": [
     {
       "inputs": [
