@@ -12,10 +12,12 @@ let userThree;
 
 describe.only("Metawood Auction", () => {
   before(async () => {
-    deployer = (await ethers.getSigners())[0];
-    user = (await ethers.getSigners())[1];
-    userTwo = (await ethers.getSigners())[2];
-    userThree = (await ethers.getSigners())[3];
+    // deployer = (await ethers.getSigners())[0];
+    // user = (await ethers.getSigners())[1];
+    // userTwo = (await ethers.getSigners())[2];
+    // userThree = (await ethers.getSigners())[3];
+
+    [deployer, user, userTwo, userThree] = await ethers.getSigners();
 
     const NftContract = await ethers.getContractFactory("MetawoodNFT");
     nftContract = await NftContract.deploy("");
@@ -137,7 +139,7 @@ describe.only("Metawood Auction", () => {
   });
 
   it("Auction should be terminated!", async function () {
-    let terminateAuction = await nftAuction.connect(userThree).terminateAuction(1);
+    let terminateAuction = await nftAuction.connect(userThree).closeAuction(1);
     let tx = await nftAuction.getAuctionById(1);
     expect(tx.status).to.equal(0);
     let nftTransfer = await nftContract.balanceOf(userThree.address, 0);

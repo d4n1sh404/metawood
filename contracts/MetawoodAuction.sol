@@ -177,7 +177,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         _auction.status = AuctionState.CLOSED;
     }
 
-    function terminateAuction(uint256 _auctionId)
+    function closeAuction(uint256 _auctionId)
         external
         nonReentrant
         ensureValidAuction(_auctionId)
