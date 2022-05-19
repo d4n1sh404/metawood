@@ -58,6 +58,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
     event BidReceived(uint256 indexed auctionId, uint256 bidAmount, address indexed bidder);
     event AuctionSettled(uint256 indexed auctionId);
     event AuctionClosed(uint256 indexed auctionId);
+    event AuctionEndUpdated(uint256 indexed auctionId, uint256 updatedTime);
 
     modifier ensureNonZeroAddress(address addressToCheck) {
         require(addressToCheck != address(0), "Zero address!");
@@ -97,7 +98,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         uint256 _auctionEnd
     ) external nonReentrant ensureNFTOwner(_nftId) {
         require(msg.sender != address(0), "Invalid caller address");
-        require(_auctionEnd > 0 && _auctionEnd > block.timestamp, "Invalid auctionEnd time");
+        require(_auctionEnd > block.timestamp, "Invalid auctionEnd time");
 
         uint256 auctionId = _auctionCounter.current();
 
@@ -258,6 +259,21 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         onlyOwner
     {
         metawoodNFT = IMetawoodNFT(_newMetawoodNFT);
+    }
+
+    function updateAuctionEnd(uint256 _auctionId, uint256 _auctionEnd)
+        public
+        nonReentrant
+        ensureValidAuction(_auctionId)
+        ensureAuctionCreator(_auctionId)
+        ensureActiveAuction(_auctionId)
+    {
+        Auction storage _auction = _auctions[_auctionId];
+
+        require(_auctionEnd > block.timestamp, "Invalid auctionEnd time");
+
+        _auction.auctionEnd = _auctionEnd;
+        emit AuctionEndUpdated(_auctionId, _auctionEnd);
     }
 
     function updateBiddingThreshold(uint256 _newBiddingThreshold) public onlyOwner {
