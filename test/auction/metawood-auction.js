@@ -10,13 +10,8 @@ let user;
 let userTwo;
 let userThree;
 
-describe.only("Metawood Auction", () => {
+describe("Metawood Auction", () => {
   before(async () => {
-    // deployer = (await ethers.getSigners())[0];
-    // user = (await ethers.getSigners())[1];
-    // userTwo = (await ethers.getSigners())[2];
-    // userThree = (await ethers.getSigners())[3];
-
     [deployer, user, userTwo, userThree] = await ethers.getSigners();
 
     const NftContract = await ethers.getContractFactory("MetawoodNFT");
@@ -136,6 +131,15 @@ describe.only("Metawood Auction", () => {
     expect(tx.nftId).to.be.equal(0); //tokenId
     let nftTransfer = await nftContract.balanceOf(userThree.address, 0);
     expect(nftTransfer).to.equal(0);
+  });
+
+  it("Should Update auction time!", async function () {
+    let auction = await nftAuction.getAuctionById(1);
+    let newTime = (new Date() / 1000 + 10 * 60) | 0;
+    let timeUpdate = await nftAuction.connect(userThree).updateAuctionEnd(1, newTime);
+    let updatedAuction = await nftAuction.getAuctionById(1);
+
+    expect(updatedAuction.auctionEnd).to.equal(newTime);
   });
 
   it("Auction should be terminated!", async function () {
