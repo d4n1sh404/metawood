@@ -147,7 +147,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         require(block.timestamp <= _auction.auctionEnd, "Auction Deadline passed!");
         require(
             msg.value >= _auction.minimumBid &&
-                msg.value >= _auction.highestBid + bidIncreaseThreshold,
+                msg.value >= _auction.highestBid + _auction.bidIncreaseThreshold,
             "Bid amount less than max bid threshold"
         );
 
