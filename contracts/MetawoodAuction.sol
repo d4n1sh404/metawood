@@ -15,7 +15,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
     Counters.Counter private _auctionCounter;
     IMetawoodNFT public metawoodNFT;
 
-    uint256 public bidIncreaseThreshold = 10**15;
+    uint256 public bidIncreaseThreshold = 200;
 
     constructor(address _nftContract) {
         metawoodNFT = IMetawoodNFT(_nftContract);
@@ -145,11 +145,11 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         Auction storage _auction = _auctions[_auctionId];
         require(msg.sender != _auction.creator, "Cannont bid on own auction!");
         require(block.timestamp <= _auction.auctionEnd, "Auction Deadline passed!");
-        require(
-            msg.value >= _auction.minimumBid &&
-                msg.value >= _auction.highestBid + _auction.bidIncreaseThreshold,
-            "Bid amount less than max bid threshold"
-        );
+        require(msg.value >= _auction.minimumBid, "Bid amount greater than minimum bid required! ");
+
+        if (_auction.highestBid > 0) {
+            require(msg.value >= getNextBid(_auctionId), "Bid amount less than max bid threshold");
+        }
 
         //return amount to old bidder
         bool success = _auction.highestBidder.send(_auction.highestBid);
@@ -319,5 +319,17 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         }
 
         return auctions;
+    }
+
+    function getNextBid(uint256 _auctionId) public view returns (uint256 _amount) {
+        Auction memory _auction = _auctions[_auctionId];
+        return (_auction.highestBid +
+            _getPercentage(_auction.highestBid, _auction.bidIncreaseThreshold));
+    }
+
+    // utils
+
+    function _getPercentage(uint256 amount, uint256 _percentage) internal pure returns (uint256) {
+        return (amount.mul(_percentage)).div(10000);
     }
 }

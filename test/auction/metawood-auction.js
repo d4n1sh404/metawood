@@ -25,97 +25,102 @@ describe("Metawood Auction", () => {
     await nftAuction.deployed();
   });
 
-  it("Should register nftToken Contract on Auction Platform!", async function () {
+  it("Should register nftToken Contract on Auction Platform!", async () => {
     let setTx = await nftAuction.setMetawoodNFT(nftContract.address);
     let getTx = await nftAuction.metawoodNFT();
     expect(getTx).to.equal(nftContract.address);
   });
 
-  it("Should grant minter role!", async function () {
+  it("Should grant minter role!", async () => {
     let role = keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE"));
     let tx = await nftContract.grantRole(role, user.address);
   });
 
-  it("Should mint a new token!", async function () {
+  it("Should mint a new token!", async () => {
     let tx = await nftContract.connect(user).mint(user.address, 1, "http://testing", "0x00");
   });
 
-  it("Minted token should have custom uri", async function () {
+  it("Minted token should have custom uri", async () => {
     let tx = await nftContract.uri(0);
     expect(tx).to.equal("http://testing");
   });
 
-  it("User should have minted token!", async function () {
+  it("User should have minted token!", async () => {
     let tx = await nftContract.balanceOf(user.address, 0);
     expect(BigNumber.from(tx)).to.be.equal(1);
   });
 
-  it("User should be able to auction minted token!", async function () {
+  it("User should be able to auction minted token!", async () => {
     let approveTx = await nftContract.connect(user).setApprovalForAll(nftAuction.address, true);
     let tx = await nftAuction
       .connect(user)
       .createAuction(0, ethers.utils.parseEther("100"), (new Date() / 1000 + 10 * 60) | 0);
   });
 
-  it("Auction should have been created!", async function () {
+  it("Auction should have been created!", async () => {
     let tx = await nftAuction.getAuctionById(0);
     expect(tx.id).to.be.equal(0); //listingId
     expect(tx.creator).to.be.equal(user.address); //creatorAddress
     expect(tx.nftId).to.be.equal(0); //tokenId
   });
 
-  it("Should escrow the nft!", async function () {
+  it("Should escrow the nft!", async () => {
     let transferCheck = await nftContract.balanceOf(user.address, 0);
     expect(transferCheck).to.be.equal(0);
     let escrowCheck = await nftContract.balanceOf(nftAuction.address, 0);
     expect(escrowCheck).to.be.equal(1);
   });
 
-  it("Should get all auctions!", async function () {
+  it("Should get all auctions!", async () => {
     let tx = await nftAuction.getAllAuctions();
     expect(tx.length).to.be.equal(1);
   });
 
-  // it("User Should get his open listings!", async function () {
+  // it("User Should get his open listings!", async () => {
   //   let tx = await marketPlace.connect(user).getOpenListings(user.address);
   //   expect(tx.length).to.be.equal(1);
   // });
 
-  it("Should get all active auctions!", async function () {
+  it("Should get all active auctions!", async () => {
     let tx = await nftAuction.getAllActiveAuctions();
     expect(tx.length).to.be.equal(1);
   });
 
-  it("Bid should be made!", async function () {
+  it("Bid should be made!", async () => {
     let tx = await nftAuction
       .connect(userTwo)
       .makeBid(0, { value: ethers.utils.parseEther("120") });
   });
 
-  it("Should escrow the bid amount!", async function () {
+  it("Should escrow the bid amount!", async () => {
     let escrowCheck = await ethers.provider.getBalance(nftAuction.address);
     expect(escrowCheck).to.be.equal(ethers.utils.parseEther("120"));
   });
 
-  it("Hightest Bid should be made!", async function () {
+  it("Should get the next bid amount", async () => {
+    let tx = await nftAuction.getNextBid(0);
+    expect(ethers.utils.formatEther(tx)).to.equal("122.4");
+  });
+
+  it("Hightest Bid should be made!", async () => {
     let tx = await nftAuction
       .connect(userThree)
-      .makeBid(0, { value: ethers.utils.parseEther("150") });
+      .makeBid(0, { value: ethers.utils.parseEther("122.4") });
   });
 
-  it("Should escrow the highest bid only!", async function () {
+  it("Should escrow the highest bid only!", async () => {
     let escrowCheck = await ethers.provider.getBalance(nftAuction.address);
-    expect(escrowCheck).to.be.equal(ethers.utils.parseEther("150"));
+    expect(escrowCheck).to.be.equal(ethers.utils.parseEther("122.4"));
   });
 
-  it("Should settle the auction!", async function () {
+  it("Should settle the auction!", async () => {
     let settleTx = await nftAuction.connect(user).settleAuction(0);
     let userBalance = await ethers.provider.getBalance(user.address);
     let nftTransfer = await nftContract.balanceOf(userThree.address, 0);
     expect(nftTransfer).to.equal(1);
   });
 
-  it("User should be able to auction owned token!", async function () {
+  it("User should be able to auction owned token!", async () => {
     let approveTx = await nftContract
       .connect(userThree)
       .setApprovalForAll(nftAuction.address, true);
@@ -124,7 +129,7 @@ describe("Metawood Auction", () => {
       .createAuction(0, ethers.utils.parseEther("100"), (new Date() / 1000 + 2 * 60) | 0);
   });
 
-  it("Auction should have been created!", async function () {
+  it("Auction should have been created!", async () => {
     let tx = await nftAuction.getAuctionById(1);
     expect(tx.id).to.be.equal(1); //auctionId
     expect(tx.creator).to.be.equal(userThree.address); //creatorAddress
@@ -133,7 +138,7 @@ describe("Metawood Auction", () => {
     expect(nftTransfer).to.equal(0);
   });
 
-  it("Should Update auction time!", async function () {
+  it("Should Update auction time!", async () => {
     let auction = await nftAuction.getAuctionById(1);
     let newTime = (new Date() / 1000 + 10 * 60) | 0;
     let timeUpdate = await nftAuction.connect(userThree).updateAuctionEnd(1, newTime);
@@ -142,7 +147,7 @@ describe("Metawood Auction", () => {
     expect(updatedAuction.auctionEnd).to.equal(newTime);
   });
 
-  it("Auction should be terminated!", async function () {
+  it("Auction should be terminated!", async () => {
     let terminateAuction = await nftAuction.connect(userThree).closeAuction(1);
     let tx = await nftAuction.getAuctionById(1);
     expect(tx.status).to.equal(0);
@@ -150,7 +155,7 @@ describe("Metawood Auction", () => {
     expect(nftTransfer).to.equal(1);
   });
 
-  it("Should check total auctions!", async function () {
+  it("Should check total auctions!", async () => {
     let allAuctions = await nftAuction.getAllAuctions();
     expect(allAuctions.length).to.be.equal(2);
 
