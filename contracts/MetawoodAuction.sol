@@ -152,7 +152,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         }
 
         //return amount to old bidder
-        bool success = _auction.highestBidder.send(_auction.highestBid);
+        (bool success, ) = _auction.highestBidder.call{value:_auction.highestBid}("");
         require(success, "Old highest bid payback failed");
         //update max bidder
         _auction.highestBid = msg.value;
@@ -189,16 +189,9 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
             );
         } else {
             // send
-            bool success = _auction.creator.send(_auction.highestBid);
+            (bool success,) = _auction.creator.call{value:_auction.highestBid}("");
 
             require(success, "Paying highest bidder failed");
-
-            // for (uint256 i = 0; i < _auction.bids.length; i++) {
-            //     if (_auction.bidders[i] != _auction.highestBidder) {
-            //         (success) = _auction.bidders[i].send(_auction.bids[i]);
-            //         require(success);
-            //     }
-            // }
 
             //Send the nft to highest bidder
             _auction.nftContract.safeTransferFrom(
@@ -230,7 +223,9 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
 
         //return the highest bid
         if (_auction.bids.length > 0) {
-            bool success = _auction.highestBidder.send(_auction.highestBid);
+            (bool success, ) = _auction.highestBidder.call{value:_auction.highestBid}(
+                ""
+            );
             require(success, "Highest bid payback failed");
         }
         //return the nft
