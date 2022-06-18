@@ -1,7 +1,7 @@
 {
   "name": "MetawoodAuction",
   "network": "mumbai",
-  "address": "0xcaF0bBEeB75846Ec127232E13199614DA1B9B94d",
+  "address": "0x3469285FE9624203746CB7B1d3D5dE4B64271CbA",
   "abi": [
     {
       "inputs": [
@@ -451,6 +451,25 @@
           "internalType": "address",
           "name": "",
           "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_auctionId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getNextBid",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
