@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "./interfaces/IMetawoodNFT.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./libraries/TransferHelper.sol";
+import "./interfaces/IMetawoodNFT.sol";
 
 contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
@@ -155,8 +156,8 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         }
 
         //return amount to old bidder
-        (bool success, ) = _auction.highestBidder.call{value: _auction.highestBid}("");
-        require(success, "Old highest bid payback failed");
+        TransferHelper.safeTransferETH(_auction.highestBidder, _auction.highestBid);
+
         //update max bidder
         _auction.highestBid = msg.value;
         _auction.highestBidder = payable(msg.sender);
@@ -192,9 +193,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
             );
         } else {
             // send
-            (bool success, ) = _auction.creator.call{value: _auction.highestBid}("");
-
-            require(success, "Paying highest bidder failed");
+            TransferHelper.safeTransferETH(_auction.creator, _auction.highestBid);
 
             //Send the nft to highest bidder
             _auction.nftContract.safeTransferFrom(
@@ -226,8 +225,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
 
         //return the highest bid
         if (_auction.bids.length > 0) {
-            (bool success, ) = _auction.highestBidder.call{value: _auction.highestBid}("");
-            require(success, "Highest bid payback failed");
+            TransferHelper.safeTransferETH(_auction.highestBidder, _auction.highestBid);
         }
         //return the nft
         _auction.nftContract.safeTransferFrom(
