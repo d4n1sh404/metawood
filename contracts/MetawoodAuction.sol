@@ -17,10 +17,6 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
 
     uint256 public bidIncreaseThreshold = 200;
 
-    constructor(address _nftContract) {
-        metawoodNFT = IMetawoodNFT(_nftContract);
-    }
-
     enum AuctionState {
         CLOSED,
         ACTIVE
@@ -90,6 +86,10 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         _;
     }
 
+    constructor(IMetawoodNFT _nftContract) {
+        metawoodNFT = _nftContract;
+    }
+
     // Transactions
 
     function createAuction(
@@ -152,7 +152,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         }
 
         //return amount to old bidder
-        (bool success, ) = _auction.highestBidder.call{value:_auction.highestBid}("");
+        (bool success, ) = _auction.highestBidder.call{value: _auction.highestBid}("");
         require(success, "Old highest bid payback failed");
         //update max bidder
         _auction.highestBid = msg.value;
@@ -189,7 +189,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
             );
         } else {
             // send
-            (bool success,) = _auction.creator.call{value:_auction.highestBid}("");
+            (bool success, ) = _auction.creator.call{value: _auction.highestBid}("");
 
             require(success, "Paying highest bidder failed");
 
@@ -223,9 +223,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
 
         //return the highest bid
         if (_auction.bids.length > 0) {
-            (bool success, ) = _auction.highestBidder.call{value:_auction.highestBid}(
-                ""
-            );
+            (bool success, ) = _auction.highestBidder.call{value: _auction.highestBid}("");
             require(success, "Highest bid payback failed");
         }
         //return the nft
