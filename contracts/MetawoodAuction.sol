@@ -56,6 +56,8 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
     event AuctionClosed(uint256 indexed auctionId);
     event AuctionEndUpdated(uint256 indexed auctionId, uint256 updatedTime);
 
+    // Modifiers Start
+
     modifier ensureNonZeroAddress(address addressToCheck) {
         require(addressToCheck != address(0), "Zero address!");
         _;
@@ -86,6 +88,8 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         _;
     }
 
+    //Constructor
+
     constructor(IMetawoodNFT _nftContract) {
         metawoodNFT = _nftContract;
     }
@@ -96,8 +100,7 @@ contract MetawoodAuction is ERC1155Holder, Ownable, ReentrancyGuard {
         uint256 _nftId,
         uint256 _minimumBid,
         uint256 _auctionEnd
-    ) external nonReentrant ensureNFTOwner(_nftId) {
-        require(msg.sender != address(0), "Invalid caller address");
+    ) external nonReentrant ensureNonZeroAddress(msg.sender) ensureNFTOwner(_nftId) {
         require(_auctionEnd > block.timestamp, "Invalid auctionEnd time");
 
         uint256 auctionId = _auctionCounter.current();
