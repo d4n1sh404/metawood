@@ -7,7 +7,7 @@ const { parseEther, keccak256 } = require("ethers/lib/utils");
 const { BigNumber } = require("ethers");
 const { MaxUint256, AddressZero } = ethers.constants;
 
-describe.only("Metawood marketplace Core test cases", function () {
+describe("Metawood marketplace Core test cases", function () {
   before(async function () {
     this.signers = await ethers.getSigners();
     this.deployer = this.signers[0];
